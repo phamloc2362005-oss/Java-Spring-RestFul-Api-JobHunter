@@ -1,4 +1,4 @@
-package vn.hoidanit.jobhunter.controller;
+package vn.locpham.jobhunter.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
+import vn.locpham.jobhunter.domain.dto.LoginDTO;
 
 @RestController
 public class AuthController {

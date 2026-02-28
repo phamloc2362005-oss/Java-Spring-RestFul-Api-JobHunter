@@ -1,4 +1,4 @@
-package vn.hoidanit.jobhunter.controller;
+package vn.locpham.jobhunter.controller;
 
 import java.util.List;
 
@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.service.UserService;
-import vn.hoidanit.jobhunter.util.error.IdInvalidException;
+import vn.locpham.jobhunter.domain.User;
+import vn.locpham.jobhunter.service.UserService;
+import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @RestController
 public class UserController {

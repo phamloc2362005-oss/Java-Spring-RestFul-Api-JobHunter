@@ -1,11 +1,11 @@
-package vn.hoidanit.jobhunter.util.error;
+package vn.locpham.jobhunter.util.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import vn.hoidanit.jobhunter.domain.RestResponse;
+import vn.locpham.jobhunter.domain.RestResponse;
 
 @RestControllerAdvice
 public class GlobalException {

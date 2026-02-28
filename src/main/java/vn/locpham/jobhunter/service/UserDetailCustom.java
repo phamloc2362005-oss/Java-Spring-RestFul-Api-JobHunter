@@ -1,4 +1,4 @@
-package vn.hoidanit.jobhunter.service;
+package vn.locpham.jobhunter.service;
 
 import java.util.Collections;
 
@@ -21,7 +21,7 @@ public class UserDetailCustom implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // TODO Auto-generated method stub
-        vn.hoidanit.jobhunter.domain.User user = this.userService.handleGetUserByUsername(username);
+        vn.locpham.jobhunter.domain.User user = this.userService.handleGetUserByUsername(username);
         return new User(user.getEmail(), user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }

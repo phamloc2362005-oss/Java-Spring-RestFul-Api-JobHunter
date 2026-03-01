@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.locpham.jobhunter.domain.RestResponse;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -37,15 +38,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         this.delegate.commence(request, response, authException);
         response.setContentType("application/json;charset=UTF-8");
         // nếu lỗi là do JWT invalid
-        if (authException.getCause() instanceof JwtValidationException validationException) {
-            var problemDetail = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
-            problemDetail.setType(URI.create("https://tools.ietf.org/html/rfc6750#section-3.1"));
-            problemDetail.setTitle("Invalid Token");
-            problemDetail.setProperty("errors", validationException.getErrors());
-
-            // (optional) đảm bảo trả JSON
-            response.setContentType("application/json");
-            mapper.writeValue(response.getWriter(), problemDetail);
-        }
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatus(HttpStatus.UNAUTHORIZED.value());
+        res.setError(authException.getCause().getMessage());
+        res.setMessage("Token không hợp lệ");
+        mapper.writeValue(response.getWriter(), res);
     }
 }

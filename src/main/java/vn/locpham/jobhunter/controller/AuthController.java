@@ -32,6 +32,7 @@ public class AuthController {
 
         // xác thực người dùng => cần viết hàm loadUserByUsername
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
         String access_token = this.sercurityUtil.createToken(authentication);
         ResLoginDTO res = new ResLoginDTO();
         res.setAccessToken(access_token);

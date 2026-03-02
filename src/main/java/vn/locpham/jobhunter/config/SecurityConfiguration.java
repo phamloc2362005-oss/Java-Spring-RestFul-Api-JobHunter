@@ -26,7 +26,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
 
-import vn.locpham.jobhunter.util.SercurityUtil;
+import vn.locpham.jobhunter.util.SecurityUtils;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
@@ -43,7 +43,7 @@ public class SecurityConfiguration {
 
     private SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
-        return new SecretKeySpec(keyBytes, 0, keyBytes.length, SercurityUtil.JWT_ALGORITHM.getName());
+        return new SecretKeySpec(keyBytes, 0, keyBytes.length, SecurityUtils.JWT_ALGORITHM.getName());
     }
 
     @Bean
@@ -56,7 +56,7 @@ public class SecurityConfiguration {
 
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
                 .withSecretKey(getSecretKey())
-                .macAlgorithm(SercurityUtil.JWT_ALGORITHM)
+                .macAlgorithm(SecurityUtils.JWT_ALGORITHM)
                 .build();
         return new JwtDecoder() {
             @Override

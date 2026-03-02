@@ -67,6 +67,7 @@ public class SecurityConfiguration {
                     System.out.println(">>> JWT error: " + e.getMessage());
                     throw e;
                 }
+
             }
 
         };
@@ -77,6 +78,7 @@ public class SecurityConfiguration {
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
         http
                 .csrf(c -> c.disable())
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers("/", "/login").permitAll()

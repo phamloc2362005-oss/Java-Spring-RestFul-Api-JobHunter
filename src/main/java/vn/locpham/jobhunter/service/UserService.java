@@ -3,8 +3,11 @@ package vn.locpham.jobhunter.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import vn.locpham.jobhunter.domain.Meta;
+import vn.locpham.jobhunter.domain.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.repository.UserRepository;
 
@@ -33,8 +36,13 @@ public class UserService {
         return null;
     }
 
-    public List<User> fetchAllUser() {
-        return this.userRepository.findAll();
+    public ResultPaginationDTO fetchAllUser(Specification<User> pageable) {
+        List<User> pageUser = this.userRepository.findAll(pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        Meta mt = new Meta();
+        rs.setMeta(mt);
+        rs.setResult(pageUser);
+        return rs;
     }
 
     public User handleUpdateUser(User reqUser) {

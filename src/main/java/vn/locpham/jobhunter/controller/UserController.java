@@ -1,12 +1,10 @@
 package vn.locpham.jobhunter.controller;
 
-import java.util.List;
-
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +12,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.turkraft.springfilter.boot.Filter;
+
+import vn.locpham.jobhunter.domain.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
@@ -55,8 +56,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> fetchUser() {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser());
+    public ResponseEntity<ResultPaginationDTO> fetchUser(@Filter Specification<User> spec) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec));
 
     }
 

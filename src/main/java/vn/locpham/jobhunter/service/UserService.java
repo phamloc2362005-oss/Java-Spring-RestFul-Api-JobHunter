@@ -1,8 +1,9 @@
 package vn.locpham.jobhunter.service;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +37,17 @@ public class UserService {
         return null;
     }
 
-    public ResultPaginationDTO fetchAllUser(Specification<User> pageable) {
-        List<User> pageUser = this.userRepository.findAll(pageable);
+    public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
+        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
         Meta mt = new Meta();
+        mt.setPage(pageUser.getNumber() + 1);
+        mt.setPageSize(pageUser.getSize());
+        mt.setPages(pageUser.getTotalPages());
+        mt.setTotal(pageUser.getTotalElements());
+
         rs.setMeta(mt);
-        rs.setResult(pageUser);
+        rs.setResult(pageUser.getContent());
         return rs;
     }
 

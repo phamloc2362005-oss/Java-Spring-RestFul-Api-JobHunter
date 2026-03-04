@@ -1,5 +1,6 @@
 package vn.locpham.jobhunter.controller;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,8 +57,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<ResultPaginationDTO> fetchUser(@Filter Specification<User> spec) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec));
+    public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec, Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
 
     }
 

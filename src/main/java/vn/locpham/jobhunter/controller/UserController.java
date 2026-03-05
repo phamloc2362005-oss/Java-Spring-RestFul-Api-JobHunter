@@ -11,16 +11,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
 
+import jakarta.validation.Valid;
+import vn.locpham.jobhunter.annotattion.ApiMessage;
 import vn.locpham.jobhunter.domain.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.User;
+import vn.locpham.jobhunter.domain.dto.ResCreateUserDTO;
+import vn.locpham.jobhunter.domain.dto.ResUpdateUserDTO;
+import vn.locpham.jobhunter.domain.dto.ResUserDTO;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @RestController
+@RequestMapping("/api/v1")
 public class UserController {
 
     private final UserService userService;
@@ -33,37 +40,56 @@ public class UserController {
 
     // @GetMapping("/users/create")
     @PostMapping("/users/create")
-    public ResponseEntity<User> createNewUser(@RequestBody User postmanUser) {
+    @ApiMessage("Create a new user")
+    public ResponseEntity<ResCreateUserDTO> createNewUser(@Valid @RequestBody User postmanUser)
+            throws IdInvalidException {
+        boolean isEmailExist = this.userService.isExistEmail(postmanUser.getEmail());
+        if (isEmailExist) {
+            throw new IdInvalidException("Email " + postmanUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác");
+        }
         String hashPassword = this.passwordEncoder.encode(postmanUser.getPassword());
         postmanUser.setPassword(hashPassword);
-        User ericUser = this.userService.handleCreateUser(postmanUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ericUser);
+        User user = this.userService.handleCreateUser(postmanUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(user));
 
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable("id") Long id) throws IdInvalidException {
-        if (id >= 1500) {
-            throw new IdInvalidException("Id khong lớn hơn 1500");
+    @ApiMessage("Delete a user")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) throws IdInvalidException {
+        User currentUser = this.userService.fetchUserById(id);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
         }
         this.userService.handleDeleteUser(id);
-        return ResponseEntity.status(HttpStatus.OK).body("ericUser");
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> fetchUserById(@PathVariable("id") Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchUserById(id));
+    @ApiMessage("Fecth user by id")
+    public ResponseEntity<ResUserDTO> fetchUserById(@PathVariable("id") Long id) throws IdInvalidException {
+        User currentUser = this.userService.fetchUserById(id);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(currentUser));
 
     }
 
     @GetMapping("/users")
+    @ApiMessage("Fecth all users")
     public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
 
     }
 
     @PutMapping("/users")
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return ResponseEntity.ok(user);
+    @ApiMessage("Update a user")
+    public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
+        User currentUser = this.userService.handleUpdateUser(user);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
+        }
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(user));
     }
 }

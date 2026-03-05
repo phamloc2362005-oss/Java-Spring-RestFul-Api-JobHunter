@@ -90,6 +90,6 @@ public class UserController {
         if (currentUser == null) {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }
-        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(user));
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(currentUser));
     }
 }

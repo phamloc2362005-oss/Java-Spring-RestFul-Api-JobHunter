@@ -62,14 +62,6 @@ public class ResUpdateUserDTO {
         return updatedBy;
     }
 
-    @PreUpdate
-    public void handleBeforeUpdate() {
-        this.updatedAt = Instant.now();
-        this.updatedBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtils.getCurrentUserLogin().get()
-                : "";
-    }
-
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
     }

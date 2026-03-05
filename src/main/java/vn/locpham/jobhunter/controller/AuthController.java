@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.domain.dto.LoginDTO;
 import vn.locpham.jobhunter.domain.dto.ResLoginDTO;
+import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.SecurityUtils;
 
 @RestController
@@ -21,10 +23,13 @@ public class AuthController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SecurityUtils sercurityUtil;
+    private final UserService userService;
 
-    public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtils sercurityUtil) {
+    public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtils sercurityUtil,
+            UserService userService) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.sercurityUtil = sercurityUtil;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -36,8 +41,15 @@ public class AuthController {
         // xác thực người dùng => cần viết hàm loadUserByUsername
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String access_token = this.sercurityUtil.createToken(authentication);
+
         ResLoginDTO res = new ResLoginDTO();
+        User userCurrentDB = this.userService.handleGetUserByUsername(loginDTO.getUsername());
+        if (userCurrentDB != null) {
+            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(userCurrentDB.getId(), userCurrentDB.getEmail(),
+                    userCurrentDB.getName());
+            res.setUser(userLogin);
+        }
+        String access_token = this.sercurityUtil.createToken(authentication);
         res.setAccessToken(access_token);
         return ResponseEntity.ok().body(res);
     }

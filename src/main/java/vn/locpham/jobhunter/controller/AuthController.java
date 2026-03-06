@@ -8,6 +8,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +23,7 @@ import vn.locpham.jobhunter.domain.dto.LoginDTO;
 import vn.locpham.jobhunter.domain.dto.ResLoginDTO;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.SecurityUtils;
+import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -57,7 +60,7 @@ public class AuthController {
                     userCurrentDB.getName());
             res.setUser(userLogin);
         }
-        String access_token = this.sercurityUtil.createAccessToken(authentication, res.getUser());
+        String access_token = this.sercurityUtil.createAccessToken(authentication.getName(), res.getUser());
         res.setAccessToken(access_token);
         String refresh_token = this.sercurityUtil.createRefreshToken(loginDTO.getUsername(), res);
 
@@ -88,5 +91,52 @@ public class AuthController {
             userLogin.setName(userCurrentDB.getName());
         }
         return ResponseEntity.ok().body(userLogin);
+    }
+
+    @GetMapping("auth/refresh")
+    @ApiMessage("Get user by refresh token")
+    public ResponseEntity<ResLoginDTO> getrefreshToken(
+            @CookieValue(name = "refresh_token", defaultValue = "abc") String refresh_token) throws IdInvalidException {
+        if (refresh_token.equals("abc")) {
+            throw new IdInvalidException("Ban can truyen vao Resfresh Token");
+        }
+        Jwt decodedToken;
+        try {
+            decodedToken = this.sercurityUtil.checkValidrefreshToken(refresh_token);
+        } catch (Exception e) {
+            throw new IdInvalidException("Refresh Token khong hop le hoac da het han");
+        }
+        String email = decodedToken.getSubject();
+
+        User currentUser = this.userService.getUserByRefreshTokenAndEmail(refresh_token, email);
+        if (currentUser == null) {
+            throw new IdInvalidException("Refresh Token khong hop le hoac da het han");
+        }
+
+        ResLoginDTO res = new ResLoginDTO();
+        User userCurrentDB = this.userService.handleGetUserByUsername(email);
+        if (userCurrentDB != null) {
+            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(userCurrentDB.getId(), userCurrentDB.getEmail(),
+                    userCurrentDB.getName());
+            res.setUser(userLogin);
+        }
+
+        String access_token = this.sercurityUtil.createAccessToken(email, res.getUser());
+        res.setAccessToken(access_token);
+        String new_refresh_token = this.sercurityUtil.createRefreshToken(email, res);
+
+        // update user
+        this.userService.updateUserToken(new_refresh_token, email);
+
+        // set cookie
+        ResponseCookie resCookies = ResponseCookie.from("refresh_token", new_refresh_token)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(jwtRefreshExpirition)
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, resCookies.toString())
+                .body(res);
     }
 }

@@ -50,7 +50,7 @@ public class User {
 
     private String address;
     @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshtoken;
+    private String refreshToken;
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
@@ -64,12 +64,12 @@ public class User {
         this.age = age;
     }
 
-    public String getRefreshtoken() {
-        return refreshtoken;
+    public String getrefreshToken() {
+        return refreshToken;
     }
 
-    public void setRefreshtoken(String refreshtoken) {
-        this.refreshtoken = refreshtoken;
+    public void setrefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public Instant getCreatedAt() {

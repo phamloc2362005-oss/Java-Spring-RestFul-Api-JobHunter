@@ -118,4 +118,12 @@ public class UserService {
         resUserUpdateDTO.setUpdatedBy(user.getUpdatedBy());
         return resUserUpdateDTO;
     }
+
+    public void updateUserToken(String token, String email) {
+        User currentUser = this.handleGetUserByUsername(email);
+        if (currentUser != null) {
+            currentUser.setRefreshtoken(token);
+            this.userRepository.save(currentUser);
+        }
+    }
 }

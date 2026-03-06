@@ -1,5 +1,8 @@
 package vn.locpham.jobhunter.controller;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -20,6 +23,9 @@ import vn.locpham.jobhunter.util.SecurityUtils;
 @RestController
 @RequestMapping("/api/v1")
 public class AuthController {
+
+    @Value("${locpham.jwt.refresh-token-validity-in-seconds}")
+    private long jwtRefreshExpirition;
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SecurityUtils sercurityUtil;
@@ -49,8 +55,22 @@ public class AuthController {
                     userCurrentDB.getName());
             res.setUser(userLogin);
         }
-        String access_token = this.sercurityUtil.createToken(authentication);
+        String access_token = this.sercurityUtil.createAccessToken(authentication);
         res.setAccessToken(access_token);
-        return ResponseEntity.ok().body(res);
+        String refresh_token = this.sercurityUtil.createRefreshToken(loginDTO.getUsername(), res);
+
+        // update user
+        this.userService.updateUserToken(refresh_token, loginDTO.getUsername());
+
+        // set cookie
+        ResponseCookie resCookies = ResponseCookie.from("refresh_token", refresh_token)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(jwtRefreshExpirition)
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, resCookies.toString())
+                .body(res);
     }
 }

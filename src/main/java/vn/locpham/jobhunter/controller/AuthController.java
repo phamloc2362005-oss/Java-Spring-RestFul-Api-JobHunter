@@ -8,12 +8,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import vn.locpham.jobhunter.annotattion.ApiMessage;
 import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.domain.dto.LoginDTO;
 import vn.locpham.jobhunter.domain.dto.ResLoginDTO;
@@ -38,7 +40,7 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
         // Nạp input gồm username/password vào Security
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
@@ -55,7 +57,7 @@ public class AuthController {
                     userCurrentDB.getName());
             res.setUser(userLogin);
         }
-        String access_token = this.sercurityUtil.createAccessToken(authentication);
+        String access_token = this.sercurityUtil.createAccessToken(authentication, res.getUser());
         res.setAccessToken(access_token);
         String refresh_token = this.sercurityUtil.createRefreshToken(loginDTO.getUsername(), res);
 
@@ -72,5 +74,19 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                 .body(res);
+    }
+
+    @GetMapping("auth/account")
+    @ApiMessage("fetch account")
+    public ResponseEntity<ResLoginDTO.UserLogin> getAccount() {
+        String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
+        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+        User userCurrentDB = this.userService.handleGetUserByUsername(email);
+        if (userCurrentDB != null) {
+            userLogin.setId(userCurrentDB.getId());
+            userLogin.setEmail(userCurrentDB.getEmail());
+            userLogin.setName(userCurrentDB.getName());
+        }
+        return ResponseEntity.ok().body(userLogin);
     }
 }

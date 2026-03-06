@@ -39,7 +39,7 @@ public class SecurityUtils {
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
-    public String createAccessToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication, ResLoginDTO.UserLogin dto) {
 
         Instant now = Instant.now();
         Instant validity = now.plus(this.jwtAccessExpirition, ChronoUnit.SECONDS);
@@ -49,7 +49,7 @@ public class SecurityUtils {
             .issuedAt(now)
             .expiresAt(validity)
             .subject(authentication.getName())
-            .claim("locpham", authentication)
+            .claim("user", dto)
             .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();

@@ -1,11 +1,14 @@
 package vn.locpham.jobhunter.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 public class ResLoginDTO {
+    @JsonProperty("access_token")
     private String accessToken;
     private UserLogin user;
 
@@ -71,6 +74,17 @@ public class ResLoginDTO {
             this.name = name;
         }
 
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserGetAccount {
+        private UserLogin user;
+
+        public void setUser(UserLogin user) {
+            this.user = user;
+        }
     }
 
 }

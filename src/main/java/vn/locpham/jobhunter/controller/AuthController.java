@@ -81,21 +81,23 @@ public class AuthController {
 
     @GetMapping("auth/account")
     @ApiMessage("fetch account")
-    public ResponseEntity<ResLoginDTO.UserLogin> getAccount() {
+    public ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
-        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
         User userCurrentDB = this.userService.handleGetUserByUsername(email);
+        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+        ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
         if (userCurrentDB != null) {
             userLogin.setId(userCurrentDB.getId());
             userLogin.setEmail(userCurrentDB.getEmail());
             userLogin.setName(userCurrentDB.getName());
+            userGetAccount.setUser(userLogin);
         }
-        return ResponseEntity.ok().body(userLogin);
+        return ResponseEntity.ok().body(userGetAccount);
     }
 
     @GetMapping("auth/refresh")
     @ApiMessage("Get user by refresh token")
-    public ResponseEntity<ResLoginDTO> getrefreshToken(
+    public ResponseEntity<ResLoginDTO> getRefreshToken(
             @CookieValue(name = "refresh_token", defaultValue = "abc") String refresh_token) throws IdInvalidException {
         if (refresh_token.equals("abc")) {
             throw new IdInvalidException("Ban can truyen vao Resfresh Token");
@@ -138,5 +140,23 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                 .body(res);
+    }
+
+    @GetMapping("auth/logout")
+    @ApiMessage("Logout Complete")
+    public ResponseEntity<Void> logout() {
+        String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
+        this.userService.handleDeleteRefreshTokenByEmail(email);
+        ResponseCookie deleteSpringCookie = ResponseCookie
+                .from("refresh_token", null)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
+                .body(null);
     }
 }

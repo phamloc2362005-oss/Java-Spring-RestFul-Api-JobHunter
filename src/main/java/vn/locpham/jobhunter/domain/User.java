@@ -64,11 +64,11 @@ public class User {
         this.age = age;
     }
 
-    public String getrefreshToken() {
+    public String getRefreshToken() {
         return refreshToken;
     }
 
-    public void setrefreshToken(String refreshToken) {
+    public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.turkraft.springfilter.boot.Filter;
 
@@ -20,6 +21,7 @@ import vn.locpham.jobhunter.domain.ResultPaginationDTO;
 import vn.locpham.jobhunter.service.CompanyService;
 
 @Controller
+@RequestMapping("/api/v1")
 public class CompanyController {
     private final CompanyService companyService;
 

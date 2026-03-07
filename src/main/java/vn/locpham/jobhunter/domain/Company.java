@@ -24,7 +24,7 @@ public class Company {
 
     @NotBlank(message = "tên công ty không được để trống")
     private String name;
-
+    private String address;
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
     private String logo;
@@ -114,6 +114,14 @@ public class Company {
         this.updatedBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtils.getCurrentUserLogin().get()
                 : "";
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
 }

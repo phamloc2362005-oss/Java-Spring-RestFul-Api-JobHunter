@@ -36,6 +36,10 @@ public class Company {
     @JsonIgnore
     List<User> users;
 
+    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
+    @JsonIgnore
+    List<Job> jobs;
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

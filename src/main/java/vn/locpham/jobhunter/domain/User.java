@@ -9,12 +9,14 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import vn.locpham.jobhunter.constant.GenderEnum;
 import vn.locpham.jobhunter.util.SecurityUtils;
+import vn.locpham.jobhunter.util.constant.GenderEnum;
 
 @Entity
 @Table(name = "users")
@@ -32,6 +34,19 @@ public class User {
     @Enumerated(EnumType.STRING)
     private GenderEnum gender;
 
+    private String address;
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String refreshToken;
+
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
+
     public GenderEnum getGender() {
         return gender;
     }
@@ -47,14 +62,6 @@ public class User {
     public void setAddress(String address) {
         this.address = address;
     }
-
-    private String address;
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshToken;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private String createdBy;
-    private String updatedBy;
 
     public int getAge() {
         return age;
@@ -150,6 +157,14 @@ public class User {
         this.updatedBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtils.getCurrentUserLogin().get()
                 : "";
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
 }

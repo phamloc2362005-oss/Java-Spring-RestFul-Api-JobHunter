@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.config;
+package vn.locpham.jobhunter.util.config;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;

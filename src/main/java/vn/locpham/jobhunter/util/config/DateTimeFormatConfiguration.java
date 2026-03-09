@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.config;
+package vn.locpham.jobhunter.util.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;

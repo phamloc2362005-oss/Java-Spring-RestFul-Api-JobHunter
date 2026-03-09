@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.annotattion;
+package vn.locpham.jobhunter.util.annotattion;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

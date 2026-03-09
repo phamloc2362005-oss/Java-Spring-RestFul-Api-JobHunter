@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.domain;
+package vn.locpham.jobhunter.domain.reponse;
 
 public class RestResponse<T> {
     private int status;

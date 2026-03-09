@@ -17,7 +17,7 @@ import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 import vn.locpham.jobhunter.domain.Company;
-import vn.locpham.jobhunter.domain.ResultPaginationDTO;
+import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.service.CompanyService;
 
 @Controller

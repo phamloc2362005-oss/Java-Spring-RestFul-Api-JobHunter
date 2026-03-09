@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.constant;
+package vn.locpham.jobhunter.util.constant;
 
 public enum GenderEnum {
     FEMALE, MALE, OTHER;

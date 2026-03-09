@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import vn.locpham.jobhunter.annotattion.ApiMessage;
 import vn.locpham.jobhunter.domain.User;
-import vn.locpham.jobhunter.domain.dto.ReqLoginDTO;
-import vn.locpham.jobhunter.domain.dto.ResLoginDTO;
+import vn.locpham.jobhunter.domain.reponse.ResLoginDTO;
+import vn.locpham.jobhunter.domain.request.ReqLoginDTO;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.SecurityUtils;
+import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @RestController

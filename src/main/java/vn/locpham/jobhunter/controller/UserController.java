@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
-import vn.locpham.jobhunter.annotattion.ApiMessage;
-import vn.locpham.jobhunter.domain.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.User;
-import vn.locpham.jobhunter.domain.dto.ResCreateUserDTO;
-import vn.locpham.jobhunter.domain.dto.ResUpdateUserDTO;
-import vn.locpham.jobhunter.domain.dto.ResUserDTO;
+import vn.locpham.jobhunter.domain.reponse.ResCreateUserDTO;
+import vn.locpham.jobhunter.domain.reponse.ResUpdateUserDTO;
+import vn.locpham.jobhunter.domain.reponse.ResUserDTO;
+import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.service.UserService;
+import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @RestController

@@ -1,10 +1,15 @@
-package vn.locpham.jobhunter.domain.dto;
+package vn.locpham.jobhunter.domain.reponse;
 
 import java.time.Instant;
 
-import vn.locpham.jobhunter.constant.GenderEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import vn.locpham.jobhunter.util.constant.GenderEnum;
 
 public class ResUserDTO {
+
     private long id;
     private String name;
     private String email;
@@ -13,13 +18,13 @@ public class ResUserDTO {
     private int age;
     private Instant createdAt;
     private Instant updatedAt;
+    private CompanyUser company;
 
-    public long getId() {
-        return id;
+    public ResUserDTO() {
     }
 
     public ResUserDTO(long id, String name, String email, GenderEnum gender, String address, int age, Instant createdAt,
-            Instant updatedAt) {
+            Instant updatedAt, CompanyUser company) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -28,9 +33,49 @@ public class ResUserDTO {
         this.age = age;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.company = company;
     }
 
-    public ResUserDTO() {
+    public CompanyUser getCompany() {
+        return company;
+    }
+
+    public void setCompany(CompanyUser company) {
+        this.company = company;
+    }
+
+    public static class CompanyUser {
+        private long id;
+        private String name;
+
+        public CompanyUser() {
+        }
+
+        public CompanyUser(long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+    }
+
+    public long getId() {
+        return id;
     }
 
     public void setId(long id) {

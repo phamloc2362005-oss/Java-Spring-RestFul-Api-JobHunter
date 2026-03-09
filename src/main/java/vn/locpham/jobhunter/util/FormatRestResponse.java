@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import jakarta.servlet.http.HttpServletResponse;
-import vn.locpham.jobhunter.annotattion.ApiMessage;
-import vn.locpham.jobhunter.domain.RestResponse;
+import vn.locpham.jobhunter.domain.reponse.RestResponse;
+import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 
 @ControllerAdvice
 public class FormatRestResponse implements ResponseBodyAdvice<Object> {

@@ -35,7 +35,6 @@ public class UserService {
             user.setCompany(comOptional.isPresent() ? comOptional.get() : null);
         }
         return this.userRepository.save(user);
-
     }
 
     public void handleDeleteUser(long id) {

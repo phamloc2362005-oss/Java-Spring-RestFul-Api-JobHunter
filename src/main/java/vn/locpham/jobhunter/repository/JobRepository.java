@@ -8,12 +8,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import vn.locpham.jobhunter.domain.Skill;
+import vn.locpham.jobhunter.domain.Job;
 
-public interface SkillRepository extends JpaRepository<Skill, Long>, JpaSpecificationExecutor<Skill> {
-    Page<Skill> findAll(Specification<Skill> spec, Pageable pageable);
+public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificationExecutor<Job> {
+    Page<Job> findAll(Specification<Job> spec, Pageable pageable);
 
-    boolean existsByName(String name);
-
-    List<Skill> findByIdIn(List<Long> id);
 }

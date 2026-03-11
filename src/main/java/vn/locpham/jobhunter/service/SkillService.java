@@ -10,7 +10,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.locpham.jobhunter.domain.Skill;
-import vn.locpham.jobhunter.domain.reponse.ResUserDTO;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.repository.SkillRepository;
 
@@ -60,5 +59,12 @@ public class SkillService {
         rs.setMeta(mt);
         rs.setResult(listSkill);
         return rs;
+    }
+
+    public void handleDeleteSkill(long id) {
+        Optional<Skill> skillOptional = this.skillRepository.findById(id);
+        Skill currentSkill = skillOptional.get();
+        currentSkill.getJobs().forEach(job -> job.getSkills().remove(currentSkill));
+        this.skillRepository.delete(currentSkill);
     }
 }

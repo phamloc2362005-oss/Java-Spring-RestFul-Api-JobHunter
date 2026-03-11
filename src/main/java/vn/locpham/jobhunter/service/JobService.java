@@ -1,0 +1,107 @@
+package vn.locpham.jobhunter.service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import vn.locpham.jobhunter.domain.Job;
+import vn.locpham.jobhunter.domain.Skill;
+import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
+import vn.locpham.jobhunter.domain.reponse.job.ResCreateJobDTO;
+import vn.locpham.jobhunter.domain.reponse.job.ResUpdateJobDTO;
+import vn.locpham.jobhunter.repository.JobRepository;
+import vn.locpham.jobhunter.repository.SkillRepository;
+
+@Service
+public class JobService {
+    private final JobRepository jobRepository;
+    private final SkillRepository skillRepository;
+
+    public JobService(JobRepository jobRepository, SkillRepository skillRepository) {
+        this.jobRepository = jobRepository;
+        this.skillRepository = skillRepository;
+    }
+
+    public Job fetchJobById(long id) {
+        Optional<Job> job = this.jobRepository.findById(id);
+        if (job.isPresent()) {
+            return job.get();
+        }
+        return null;
+    }
+
+    public ResCreateJobDTO handleCreateJob(Job job) {
+        if (job.getSkills() != null) {
+            List<Long> reqSkills = job.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
+            List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
+            job.setSkills(dbSkills);
+        }
+        Job currentJob = this.jobRepository.save(job);
+        ResCreateJobDTO res = new ResCreateJobDTO();
+        res.setId(currentJob.getId());
+        res.setName(currentJob.getName());
+        res.setActive(currentJob.isActive());
+        res.setLocation(currentJob.getLocation());
+        res.setLevel(currentJob.getLevel());
+        res.setQuantity(currentJob.getQuantity());
+        res.setSalary(currentJob.getSalary());
+        res.setEndDate(currentJob.getEndDate());
+        res.setStartDate(currentJob.getStartDate());
+        res.setCreatedAt(currentJob.getCreatedAt());
+        res.setCreatedBy(currentJob.getCreatedBy());
+        if (currentJob.getSkills() != null) {
+            List<String> skills = currentJob.getSkills().stream().map(x -> x.getName()).collect(Collectors.toList());
+            res.setSkills(skills);
+        }
+        return res;
+    }
+
+    public ResUpdateJobDTO handleUpdateJob(Job job) {
+        if (job.getSkills() != null) {
+            List<Long> reqSkills = job.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
+            List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
+            job.setSkills(dbSkills);
+        }
+        Job currentJob = this.jobRepository.save(job);
+        ResUpdateJobDTO res = new ResUpdateJobDTO();
+        res.setName(currentJob.getName());
+        res.setActive(currentJob.isActive());
+        res.setLevel(currentJob.getLevel());
+        res.setLocation(currentJob.getLocation());
+        res.setQuantity(currentJob.getQuantity());
+        res.setSalary(currentJob.getSalary());
+        res.setEndDate(currentJob.getEndDate());
+        res.setStartDate(currentJob.getStartDate());
+        res.setUpdatedAt(currentJob.getUpdatedAt());
+        res.setUpdatedBy(currentJob.getUpdatedBy());
+        if (currentJob.getSkills() != null) {
+            List<String> skills = currentJob.getSkills().stream().map(x -> x.getName()).collect(Collectors.toList());
+            res.setSkills(skills);
+        }
+        return res;
+    }
+
+    public void handleDeleteJob(long id) {
+        this.jobRepository.deleteById(id);
+    }
+
+    public ResultPaginationDTO fecthAllJobs(Specification<Job> spec, Pageable pageable) {
+        Page<Job> pageJobs = this.jobRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+        mt.setPages(pageJobs.getTotalPages());
+        mt.setTotal(pageJobs.getTotalElements());
+        List<Job> jobs = pageJobs.getContent();
+        rs.setMeta(mt);
+        rs.setResult(jobs);
+        return rs;
+    }
+
+}

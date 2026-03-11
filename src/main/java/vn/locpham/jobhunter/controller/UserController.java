@@ -39,7 +39,7 @@ public class UserController {
     }
 
     // @GetMapping("/users/create")
-    @PostMapping("/users/create")
+    @PostMapping("/users")
     @ApiMessage("Create a new user")
     public ResponseEntity<ResCreateUserDTO> createNewUser(@Valid @RequestBody User postmanUser)
             throws IdInvalidException {

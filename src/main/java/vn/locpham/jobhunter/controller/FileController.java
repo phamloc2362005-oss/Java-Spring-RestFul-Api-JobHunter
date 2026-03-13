@@ -1,14 +1,19 @@
 package vn.locpham.jobhunter.controller;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -69,4 +74,23 @@ public class FileController {
         return ResponseEntity.ok().body(res);
     }
 
+    @GetMapping("/files")
+    @ApiMessage("Download a file")
+    public ResponseEntity<Resource> download(@RequestParam(value = "fileName", required = false) String fileName,
+            @RequestParam(value = "folder", required = false) String folder)
+            throws StorageException, URISyntaxException, FileNotFoundException {
+        if (fileName == null || folder == null) {
+            throw new StorageException("fileName hoac folder khong duoc de trong");
+        }
+        long fileLength = this.fileServive.getFileLength(fileName, folder);
+        if (fileLength == 0) {
+            throw new StorageException("File voi ten " + fileName + " khong ton tai");
+        }
+        InputStreamResource resource = this.fileServive.getResource(fileName, folder);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentLength(fileLength)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
+    }
 }

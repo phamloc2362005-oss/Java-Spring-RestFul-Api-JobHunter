@@ -24,7 +24,7 @@ public class GlobalException {
             BadCredentialsException.class,
             IdInvalidException.class
     })
-    public ResponseEntity<RestResponse<Object>> handleBIdException(Exception ex) {
+    public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatus(HttpStatus.BAD_REQUEST.value());
         res.setError(ex.getMessage());
@@ -61,6 +61,17 @@ public class GlobalException {
         res.setError(ex.getMessage());
         res.setMessage("Sai username hoặc password");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
+    }
+
+    @ExceptionHandler(value = {
+            StorageException.class
+    })
+    public ResponseEntity<RestResponse<Object>> handleUploadFileException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatus(HttpStatus.BAD_REQUEST.value());
+        res.setError(ex.getMessage());
+        res.setMessage("File upload exception...");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
 }

@@ -19,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -69,6 +70,9 @@ public class Job {
     @JsonIgnoreProperties(value = { "jobs" })
     @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private List<Skill> skills;
+
+    @OneToMany(mappedBy = "user")
+    private List<Resume> resumes;
 
     public long getId() {
         return id;
@@ -212,6 +216,14 @@ public class Job {
         this.updatedBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtils.getCurrentUserLogin().get()
                 : "";
+    }
+
+    public List<Resume> getResumes() {
+        return resumes;
+    }
+
+    public void setResumes(List<Resume> resumes) {
+        this.resumes = resumes;
     }
 
 }

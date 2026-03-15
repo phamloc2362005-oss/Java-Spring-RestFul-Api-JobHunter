@@ -18,10 +18,10 @@ import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 import vn.locpham.jobhunter.domain.User;
-import vn.locpham.jobhunter.domain.reponse.ResCreateUserDTO;
-import vn.locpham.jobhunter.domain.reponse.ResUpdateUserDTO;
-import vn.locpham.jobhunter.domain.reponse.ResUserDTO;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
+import vn.locpham.jobhunter.domain.reponse.user.ResCreateUserDTO;
+import vn.locpham.jobhunter.domain.reponse.user.ResUpdateUserDTO;
+import vn.locpham.jobhunter.domain.reponse.user.ResUserDTO;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
@@ -66,7 +66,7 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}")
-    @ApiMessage("Fecth user by id")
+    @ApiMessage("Fetch user by id")
     public ResponseEntity<ResUserDTO> fetchUserById(@PathVariable("id") Long id) throws IdInvalidException {
         User currentUser = this.userService.fetchUserById(id);
         if (currentUser == null) {
@@ -77,7 +77,7 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    @ApiMessage("Fecth all users")
+    @ApiMessage("Fetch all users")
     public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
 

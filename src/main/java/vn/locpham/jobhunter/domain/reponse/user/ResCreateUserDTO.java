@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.domain.reponse;
+package vn.locpham.jobhunter.domain.reponse.user;
 
 import java.time.Instant;
 
@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.locpham.jobhunter.util.constant.GenderEnum;
 
-public class ResUserDTO {
-
+public class ResCreateUserDTO {
     private long id;
     private String name;
     private String email;
@@ -17,23 +16,15 @@ public class ResUserDTO {
     private String address;
     private int age;
     private Instant createdAt;
-    private Instant updatedAt;
+    private String createdBy;
     private CompanyUser company;
 
-    public ResUserDTO() {
+    public String getCreatedBy() {
+        return createdBy;
     }
 
-    public ResUserDTO(long id, String name, String email, GenderEnum gender, String address, int age, Instant createdAt,
-            Instant updatedAt, CompanyUser company) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.gender = gender;
-        this.address = address;
-        this.age = age;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.company = company;
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
     public CompanyUser getCompany() {
@@ -44,17 +35,11 @@ public class ResUserDTO {
         this.company = company;
     }
 
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class CompanyUser {
         private long id;
         private String name;
-
-        public CompanyUser() {
-        }
-
-        public CompanyUser(long id, String name) {
-            this.id = id;
-            this.name = name;
-        }
 
         public long getId() {
             return id;
@@ -128,14 +113,6 @@ public class ResUserDTO {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
 }

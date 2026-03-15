@@ -1,51 +1,26 @@
-package vn.locpham.jobhunter.domain;
+package vn.locpham.jobhunter.domain.reponse.resume;
 
 import java.time.Instant;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import vn.locpham.jobhunter.util.SecurityUtils;
 import vn.locpham.jobhunter.util.constant.StatusEnum;
 
-@Entity
-@Table(name = "resumes")
-public class Resume {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ResFetchResumeDTO {
     private Long id;
-    @NotBlank(message = "email không được để trống")
     private String email;
     private String url;
-    @Enumerated(EnumType.STRING)
     private StatusEnum status;
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    private UserResume user;
+    private JobResume job;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "job_id")
-    private Job job;
-
-    public Resume() {
+    public ResFetchResumeDTO() {
     }
 
-    public Resume(Long id, @NotBlank(message = "email không được để trống") String email, String url, StatusEnum status,
-            Instant createdAt, Instant updatedAt, String createdBy, String updatedBy, User user, Job job) {
+    public ResFetchResumeDTO(Long id, String email, String url, StatusEnum status, Instant createdAt, Instant updatedAt,
+            String createdBy, String updatedBy, UserResume user, JobResume job) {
         this.id = id;
         this.email = email;
         this.url = url;
@@ -56,6 +31,65 @@ public class Resume {
         this.updatedBy = updatedBy;
         this.user = user;
         this.job = job;
+    }
+
+    public static class UserResume {
+        private long id;
+        private String name;
+
+        public UserResume() {
+        }
+
+        public UserResume(long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+    }
+
+    public static class JobResume {
+        private long id;
+        private String name;
+
+        public JobResume() {
+        }
+
+        public JobResume(long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 
     public Long getId() {
@@ -122,35 +156,20 @@ public class Resume {
         this.updatedBy = updatedBy;
     }
 
-    public User getUser() {
+    public UserResume getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserResume user) {
         this.user = user;
     }
 
-    public Job getJob() {
+    public JobResume getJob() {
         return job;
     }
 
-    public void setJob(Job job) {
+    public void setJob(JobResume job) {
         this.job = job;
     }
 
-    @PrePersist
-    public void handleBeforeCreate() {
-        this.createdAt = Instant.now();
-        this.createdBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtils.getCurrentUserLogin().get()
-                : "";
-    }
-
-    @PreUpdate
-    public void handleBeforeUpdate() {
-        this.updatedAt = Instant.now();
-        this.updatedBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtils.getCurrentUserLogin().get()
-                : "";
-    }
 }

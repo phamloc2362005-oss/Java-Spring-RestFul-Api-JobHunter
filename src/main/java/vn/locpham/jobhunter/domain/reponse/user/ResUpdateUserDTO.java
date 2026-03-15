@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.domain.reponse;
+package vn.locpham.jobhunter.domain.reponse.user;
 
 import java.time.Instant;
 

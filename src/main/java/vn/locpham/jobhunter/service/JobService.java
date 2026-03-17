@@ -9,11 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import vn.locpham.jobhunter.domain.Company;
 import vn.locpham.jobhunter.domain.Job;
 import vn.locpham.jobhunter.domain.Skill;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.reponse.job.ResCreateJobDTO;
 import vn.locpham.jobhunter.domain.reponse.job.ResUpdateJobDTO;
+import vn.locpham.jobhunter.repository.CompanyRepository;
 import vn.locpham.jobhunter.repository.JobRepository;
 import vn.locpham.jobhunter.repository.SkillRepository;
 
@@ -21,10 +23,13 @@ import vn.locpham.jobhunter.repository.SkillRepository;
 public class JobService {
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
+    private final CompanyRepository companyRepository;
 
-    public JobService(JobRepository jobRepository, SkillRepository skillRepository) {
+    public JobService(JobRepository jobRepository, SkillRepository skillRepository,
+            CompanyRepository companyRepository) {
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
+        this.companyRepository = companyRepository;
     }
 
     public Job fetchJobById(long id) {
@@ -40,6 +45,13 @@ public class JobService {
             List<Long> reqSkills = job.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
             List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
             job.setSkills(dbSkills);
+        }
+
+        if (job.getCompany() != null) {
+            Optional<Company> comOptional = this.companyRepository.findById(job.getCompany().getId());
+            if (comOptional.isPresent()) {
+                job.setCompany(comOptional.get());
+            }
         }
         Job currentJob = this.jobRepository.save(job);
         ResCreateJobDTO res = new ResCreateJobDTO();
@@ -58,16 +70,33 @@ public class JobService {
             List<String> skills = currentJob.getSkills().stream().map(x -> x.getName()).collect(Collectors.toList());
             res.setSkills(skills);
         }
+
         return res;
     }
 
-    public ResUpdateJobDTO handleUpdateJob(Job job) {
-        if (job.getSkills() != null) {
-            List<Long> reqSkills = job.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
+    public ResUpdateJobDTO handleUpdateJob(Job reqJob, Job jobInDB) {
+        if (reqJob.getSkills() != null) {
+            List<Long> reqSkills = reqJob.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
             List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
-            job.setSkills(dbSkills);
+            jobInDB.setSkills(dbSkills);
         }
-        Job currentJob = this.jobRepository.save(job);
+        if (reqJob.getCompany() != null) {
+            Optional<Company> comOptional = this.companyRepository.findById(reqJob.getCompany().getId());
+            if (comOptional.isPresent()) {
+                jobInDB.setCompany(comOptional.get());
+            }
+        }
+
+        jobInDB.setName(reqJob.getName());
+        jobInDB.setSalary(reqJob.getSalary());
+        jobInDB.setQuantity(reqJob.getQuantity());
+        jobInDB.setLocation(reqJob.getLocation());
+        jobInDB.setLevel(reqJob.getLevel());
+        jobInDB.setStartDate(reqJob.getStartDate());
+        jobInDB.setEndDate(reqJob.getEndDate());
+        jobInDB.setActive(reqJob.isActive());
+
+        Job currentJob = this.jobRepository.save(jobInDB);
         ResUpdateJobDTO res = new ResUpdateJobDTO();
         res.setName(currentJob.getName());
         res.setActive(currentJob.isActive());
@@ -90,7 +119,7 @@ public class JobService {
         this.jobRepository.deleteById(id);
     }
 
-    public ResultPaginationDTO fecthAllJobs(Specification<Job> spec, Pageable pageable) {
+    public ResultPaginationDTO fetchAllJobs(Specification<Job> spec, Pageable pageable) {
         Page<Job> pageJobs = this.jobRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();

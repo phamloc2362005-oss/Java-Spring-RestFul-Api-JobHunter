@@ -1,5 +1,7 @@
 package vn.locpham.jobhunter.controller;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import jakarta.validation.Valid;
 import vn.locpham.jobhunter.domain.Company;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.service.CompanyService;
+import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @Controller
 @RequestMapping("/api/v1")
@@ -38,6 +41,15 @@ public class CompanyController {
     @GetMapping("/companies")
     public ResponseEntity<ResultPaginationDTO> fetchCompanies(@Filter Specification<Company> spec, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(this.companyService.fetchAllCompanies(spec, pageable));
+    }
+
+    @GetMapping("companies/{id}")
+    public ResponseEntity<Company> getCompanyById(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Company> companyOptional = this.companyService.findById(id);
+        if (companyOptional.isEmpty()) {
+            throw new IdInvalidException("Company voi id = " + id + " khong ton tai");
+        }
+        return ResponseEntity.ok().body(companyOptional.get());
     }
 
     @PutMapping("/companies")

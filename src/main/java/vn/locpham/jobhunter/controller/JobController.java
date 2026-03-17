@@ -43,10 +43,11 @@ public class JobController {
     @PutMapping("/jobs")
     @ApiMessage("Update a job")
     public ResponseEntity<ResUpdateJobDTO> updateJob(@RequestBody Job reqJob) throws IdInvalidException {
-        if (this.jobService.fetchJobById(reqJob.getId()) == null) {
+        Job currentJob = this.jobService.fetchJobById(reqJob.getId());
+        if (currentJob == null) {
             throw new IdInvalidException("Job với id = " + reqJob.getId() + " không tồn tại");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(this.jobService.handleUpdateJob(reqJob));
+        return ResponseEntity.status(HttpStatus.OK).body(this.jobService.handleUpdateJob(reqJob, currentJob));
     }
 
     @DeleteMapping("/jobs/{id}")
@@ -61,7 +62,7 @@ public class JobController {
     }
 
     @GetMapping("/jobs/{id}")
-    @ApiMessage("Fecth job by id")
+    @ApiMessage("Fetch job by id")
     public ResponseEntity<Job> fetchJobById(@PathVariable("id") Long id) throws IdInvalidException {
         Job currentUser = this.jobService.fetchJobById(id);
         if (currentUser == null) {
@@ -72,9 +73,9 @@ public class JobController {
     }
 
     @GetMapping("/jobs")
-    @ApiMessage("Fecth all users")
+    @ApiMessage("Fetch all users")
     public ResponseEntity<ResultPaginationDTO> getAllJob(@Filter Specification<Job> spec, Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.jobService.fecthAllJobs(spec, pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(this.jobService.fetchAllJobs(spec, pageable));
 
     }
 }

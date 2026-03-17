@@ -13,6 +13,7 @@ public class ResFetchResumeDTO {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    private String company;
     private UserResume user;
     private JobResume job;
 
@@ -170,6 +171,14 @@ public class ResFetchResumeDTO {
 
     public void setJob(JobResume job) {
         this.job = job;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
     }
 
 }

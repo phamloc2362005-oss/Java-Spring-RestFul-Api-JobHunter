@@ -38,7 +38,6 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // @GetMapping("/users/create")
     @PostMapping("/users")
     @ApiMessage("Create a new user")
     public ResponseEntity<ResCreateUserDTO> createNewUser(@Valid @RequestBody User postmanUser)

@@ -45,6 +45,12 @@ public class PermissionService {
         return null;
     }
 
+    public void deletePermission(long id) {
+        Permission currentPermission = this.fetchById(id);
+        currentPermission.getRoles().stream().forEach(role -> role.getPermissions().remove(currentPermission));
+        this.permissionRepository.delete(currentPermission);
+    }
+
     public ResultPaginationDTO fetchAllPermissions(Specification<Permission> spec, Pageable pageable) {
         Page<Permission> pagePermission = this.permissionRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();

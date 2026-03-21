@@ -49,9 +49,9 @@ public class RoleController {
             throw new IdInvalidException("Role voi id = " + reqRole.getId() + "khong ton tai");
         }
         // check name
-        if (this.roleService.isNameExist(reqRole.getName())) {
-            throw new IdInvalidException("Role da ton tai");
-        }
+        // if (this.roleService.isNameExist(reqRole.getName())) {
+        // throw new IdInvalidException("Role da ton tai");
+        // }
         return ResponseEntity.status(HttpStatus.OK).body(this.roleService.updateRole(reqRole));
     }
 

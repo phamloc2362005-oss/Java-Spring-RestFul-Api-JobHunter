@@ -22,6 +22,7 @@ public class ResUpdateUserDTO {
     private Instant updatedAt;
     private String updatedBy;
     private CompanyUser company;
+    private RoleUser role;
 
     public CompanyUser getCompany() {
         return company;
@@ -34,6 +35,30 @@ public class ResUpdateUserDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class CompanyUser {
+        private long id;
+        private String name;
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RoleUser {
         private long id;
         private String name;
 
@@ -124,6 +149,14 @@ public class ResUpdateUserDTO {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public RoleUser getRole() {
+        return role;
+    }
+
+    public void setRole(RoleUser role) {
+        this.role = role;
     }
 
 }

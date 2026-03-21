@@ -47,8 +47,11 @@ public class SecurityUtils {
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
-    public String createAccessToken(String email, ResLoginDTO.UserLogin dto) {
-
+    public String createAccessToken(String email, ResLoginDTO dto) {
+        ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
+        userToken.setId(dto.getUser().getId());
+        userToken.setName(dto.getUser().getName());
+        userToken.setEmail(dto.getUser().getEmail());
         Instant now = Instant.now();
         Instant validity = now.plus(this.jwtAccessExpirition, ChronoUnit.SECONDS);
 
@@ -63,7 +66,7 @@ public class SecurityUtils {
             .issuedAt(now)
             .expiresAt(validity)
             .subject(email)
-            .claim("user", dto)
+            .claim("user", userToken)
             .claim("permission", listAuthority)
             .build();
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
@@ -71,8 +74,11 @@ public class SecurityUtils {
 
     }
 
-    public String createRefreshToken(String email, ResLoginDTO resLoginDTO) {
-
+    public String createRefreshToken(String email, ResLoginDTO dto) {
+ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
+        userToken.setId(dto.getUser().getId());
+        userToken.setName(dto.getUser().getName());
+        userToken.setEmail(dto.getUser().getEmail());
         Instant now = Instant.now();
         Instant validity = now.plus(this.jwtRefreshExpirition, ChronoUnit.SECONDS);
 
@@ -81,7 +87,7 @@ public class SecurityUtils {
             .issuedAt(now)
             .expiresAt(validity)
             .subject(email)
-            .claim("user", resLoginDTO.getUser())
+            .claim("user", userToken)
             .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();

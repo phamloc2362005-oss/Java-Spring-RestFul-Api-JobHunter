@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.locpham.jobhunter.domain.Role;
 
 public class ResLoginDTO {
     @JsonProperty("access_token")
@@ -40,11 +41,21 @@ public class ResLoginDTO {
         private long id;
         private String email;
         private String name;
+        private Role role;
 
-        public UserLogin(long id, String email, String name) {
+        public Role getRole() {
+            return role;
+        }
+
+        public void setRole(Role role) {
+            this.role = role;
+        }
+
+        public UserLogin(long id, String email, String name, Role role) {
             this.email = email;
             this.id = id;
             this.name = name;
+            this.role = role;
         }
 
         public UserLogin() {
@@ -85,6 +96,39 @@ public class ResLoginDTO {
         public void setUser(UserLogin user) {
             this.user = user;
         }
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserInsideToken {
+        private long id;
+        private String email;
+        private String name;
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
     }
 
 }

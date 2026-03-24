@@ -3,6 +3,8 @@ package vn.locpham.jobhunter.domain;
 import java.time.Instant;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,6 +47,7 @@ public class User {
     private Company company;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Resume> resumes;
 
     @ManyToOne

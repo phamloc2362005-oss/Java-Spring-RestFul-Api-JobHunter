@@ -71,6 +71,7 @@ public class Job {
     @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private List<Skill> skills;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "job")
     private List<Resume> resumes;
 

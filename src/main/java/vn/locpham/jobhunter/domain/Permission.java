@@ -49,6 +49,16 @@ public class Permission {
     public Permission() {
     }
 
+    public Permission(@NotBlank(message = "name không được để trống") String name,
+            @NotBlank(message = "api path không được để trống") String apiPath,
+            @NotBlank(message = "method không được để trống") String method,
+            @NotBlank(message = "module không được để trống") String module) {
+        this.name = name;
+        this.apiPath = apiPath;
+        this.method = method;
+        this.module = module;
+    }
+
     public Permission(Long id, @NotBlank(message = "name không được để trống") String name,
             @NotBlank(message = "api path không được để trống") String apiPath,
             @NotBlank(message = "method không được để trống") String method,

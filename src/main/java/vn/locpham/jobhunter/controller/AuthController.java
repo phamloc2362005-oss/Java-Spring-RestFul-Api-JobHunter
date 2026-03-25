@@ -2,12 +2,14 @@ package vn.locpham.jobhunter.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.domain.reponse.ResLoginDTO;
+import vn.locpham.jobhunter.domain.reponse.user.ResCreateUserDTO;
 import vn.locpham.jobhunter.domain.request.ReqLoginDTO;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.SecurityUtils;
@@ -35,12 +38,14 @@ public class AuthController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final SecurityUtils sercurityUtil;
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtils sercurityUtil,
-            UserService userService) {
+            UserService userService, PasswordEncoder passwordEncoder) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.sercurityUtil = sercurityUtil;
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/auth/login")
@@ -107,6 +112,7 @@ public class AuthController {
         if (refresh_token.equals("abc")) {
             throw new IdInvalidException("Ban can truyen vao Resfresh Token");
         }
+        // check valid
         Jwt decodedToken;
         try {
             decodedToken = this.sercurityUtil.checkValidrefreshToken(refresh_token);
@@ -130,9 +136,10 @@ public class AuthController {
                     userCurrentDB.getRole());
             res.setUser(userLogin);
         }
-
+        // create access token
         String access_token = this.sercurityUtil.createAccessToken(email, res);
         res.setAccessToken(access_token);
+        // create refresh token
         String new_refresh_token = this.sercurityUtil.createRefreshToken(email, res);
 
         // update user
@@ -166,5 +173,19 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
                 .body(null);
+    }
+
+    @PostMapping("/auth/register")
+    @ApiMessage("Register a new user")
+    public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User postManUser) throws IdInvalidException {
+        boolean isEmailExist = this.userService.isExistEmail(postManUser.getEmail());
+        if (isEmailExist) {
+            throw new IdInvalidException(
+                    "Email " + postManUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
+        }
+        String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
+        postManUser.setPassword(hashPassword);
+        User ericUser = this.userService.handleCreateUser(postManUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(ericUser));
     }
 }

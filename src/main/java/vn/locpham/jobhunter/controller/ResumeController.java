@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
-import com.turkraft.springfilter.builder.FilterBuilder;
-import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 
 import jakarta.validation.Valid;
 import vn.locpham.jobhunter.domain.Company;
@@ -42,16 +40,10 @@ public class ResumeController {
 
     private final ResumeService resumeService;
     private final UserService userService;
-    private final FilterBuilder filterBuilder;
-    private final FilterSpecificationConverter filterSpecificationConverter;
 
-    public ResumeController(ResumeService resumeService, UserService userService,
-            FilterBuilder filterBuilder,
-            FilterSpecificationConverter filterSpecificationConverter) {
+    public ResumeController(ResumeService resumeService, UserService userService) {
         this.resumeService = resumeService;
         this.userService = userService;
-        this.filterBuilder = filterBuilder;
-        this.filterSpecificationConverter = filterSpecificationConverter;
     }
 
     @PostMapping("/resumes")
@@ -119,17 +111,29 @@ public class ResumeController {
             Company userCompany = currentUser.getCompany();
             if (userCompany != null) {
                 List<Job> companyJobs = userCompany.getJobs();
-                if (companyJobs != null && companyJobs.size() > 0) {
+                System.out.println("DEBUG: Số jobs lấy được: " + (companyJobs != null ? companyJobs.size() : 0));
+                if (companyJobs != null && !companyJobs.isEmpty()) {
                     arrJobIds = companyJobs.stream().map(x -> x.getId())
                             .collect(Collectors.toList());
+                    System.out.println("DEBUG: Job IDs: " + arrJobIds);
                 }
             }
         }
 
-        Specification<Resume> jobInSpec = filterSpecificationConverter.convert(filterBuilder.field("job")
-                .in(filterBuilder.input(arrJobIds)).get());
+        // Tạo Specification để filter resumes theo job IDs
+        Specification<Resume> jobInSpec = null;
+        if (arrJobIds != null && !arrJobIds.isEmpty()) {
+            final List<Long> finalJobIds = arrJobIds;
+            // root : entity, query: để xây dựng câu truy vấn (order by, group by)
+            // cb: criteria builder để tạo các điều kiện (equal, like, in, ... )
+            jobInSpec = (root, query, cb) -> root.get("job").get("id").in(finalJobIds);
+        } else {
+            // Nếu không có job, trả về không có kết quả
+            jobInSpec = (root, query, cb) -> cb.disjunction();
+        }
 
         Specification<Resume> finalSpec = jobInSpec.and(spec);
+        System.out.println("DEBUG: Pageable size: " + pageable.getPageSize());
 
         return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));
     }

@@ -40,6 +40,18 @@ public class Company {
     @JsonIgnore
     List<Job> jobs;
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public List<Job> getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(List<Job> jobs) {
+        this.jobs = jobs;
+    }
+
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

@@ -2,9 +2,11 @@ package vn.locpham.jobhunter.util.config;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import vn.locpham.jobhunter.domain.Permission;
 import vn.locpham.jobhunter.domain.Role;
 import vn.locpham.jobhunter.domain.User;

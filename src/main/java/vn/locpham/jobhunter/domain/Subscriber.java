@@ -1,5 +1,6 @@
 package vn.locpham.jobhunter.domain;
 
+import java.time.Instant;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,8 +13,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import vn.locpham.jobhunter.util.SecurityUtils;
 
 @Entity
 @Table(name = "subscribers")
@@ -27,6 +31,14 @@ public class Subscriber {
 
     @NotBlank(message = "email không được để trống")
     private String email;
+
+    private Instant createdAt;
+
+    private Instant updatedAt;
+
+    private String createdBy;
+
+    private String updatedBy;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "subscribers" })
@@ -42,6 +54,38 @@ public class Subscriber {
         this.name = name;
         this.email = email;
         this.skills = skills;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
     public Long getId() {
@@ -76,4 +120,19 @@ public class Subscriber {
         this.skills = skills;
     }
 
+    @PrePersist
+    public void handleBeforeCreate() {
+        this.createdAt = Instant.now();
+        this.createdBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtils.getCurrentUserLogin().get()
+                : "";
+    }
+
+    @PreUpdate
+    public void handleBeforeUpdate() {
+        this.updatedAt = Instant.now();
+        this.updatedBy = SecurityUtils.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtils.getCurrentUserLogin().get()
+                : "";
+    }
 }

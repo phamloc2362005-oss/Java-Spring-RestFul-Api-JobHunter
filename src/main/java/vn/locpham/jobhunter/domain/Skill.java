@@ -3,7 +3,6 @@ package vn.locpham.jobhunter.domain;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Flow.Subscriber;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

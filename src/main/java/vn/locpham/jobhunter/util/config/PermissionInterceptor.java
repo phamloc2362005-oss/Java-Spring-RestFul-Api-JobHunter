@@ -15,6 +15,7 @@ import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.SecurityUtils;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
+import vn.locpham.jobhunter.util.error.PermissionException;
 
 public class PermissionInterceptor implements HandlerInterceptor {
     @Autowired
@@ -44,11 +45,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
                     boolean isAllow = permissions.stream()
                             .anyMatch(item -> item.getApiPath().equals(path) &&
                                     item.getMethod().equals(httpMethod));
-                    if (!isAllow) {
-                        throw new IdInvalidException("You are not allowed to access this resource");
+                    if (isAllow == false) {
+                        throw new PermissionException("You are not allowed to access this resource");
                     }
                 } else {
-                    throw new IdInvalidException("Role of user is invalid");
+                    throw new PermissionException("Role of user is invalid");
                 }
             }
         }

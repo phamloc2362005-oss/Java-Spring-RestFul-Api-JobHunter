@@ -87,7 +87,7 @@ public class AuthController {
                 .body(res);
     }
 
-    @GetMapping("auth/account")
+    @GetMapping("/auth/account")
     @ApiMessage("fetch account")
     public ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
@@ -105,7 +105,7 @@ public class AuthController {
         return ResponseEntity.ok().body(userGetAccount);
     }
 
-    @GetMapping("auth/refresh")
+    @GetMapping("/auth/refresh")
     @ApiMessage("Get user by refresh token")
     public ResponseEntity<ResLoginDTO> getRefreshToken(
             @CookieValue(name = "refresh_token", defaultValue = "abc") String refresh_token) throws IdInvalidException {
@@ -157,7 +157,7 @@ public class AuthController {
                 .body(res);
     }
 
-    @GetMapping("auth/logout")
+    @GetMapping("/auth/logout")
     @ApiMessage("Logout Complete")
     public ResponseEntity<Void> logout() {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";

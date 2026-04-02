@@ -1,17 +1,17 @@
 package vn.locpham.jobhunter.domain.reponse;
 
 public class RestResponse<T> {
-    private int status;
+    private int statusCode;
     private String error;
     private Object message;
     private T data;
 
-    public int getStatus() {
-        return status;
+    public int getStatusCode() {
+        return statusCode;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
     }
 
     public String getError() {
@@ -20,7 +20,8 @@ public class RestResponse<T> {
 
     @Override
     public String toString() {
-        return "RestResponse [status=" + status + ", error=" + error + ", message=" + message + ", data=" + data + "]";
+        return "RestResponse [statusCode=" + statusCode + ", error=" + error + ", message=" + message + ", data=" + data
+                + "]";
     }
 
     public void setError(String error) {

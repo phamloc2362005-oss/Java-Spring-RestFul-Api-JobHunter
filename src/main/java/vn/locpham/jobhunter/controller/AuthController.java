@@ -157,11 +157,14 @@ public class AuthController {
                 .body(res);
     }
 
-    @GetMapping("/auth/logout")
+    @PostMapping("/auth/logout")
     @ApiMessage("Logout Complete")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout() throws IdInvalidException {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
         this.userService.handleDeleteRefreshTokenByEmail(email);
+        if (email.equals("")) {
+            throw new IdInvalidException("Access Token không hợp lệ");
+        }
         ResponseCookie deleteSpringCookie = ResponseCookie
                 .from("refresh_token", null)
                 .httpOnly(true)

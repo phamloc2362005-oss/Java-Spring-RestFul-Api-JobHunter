@@ -26,7 +26,7 @@ public class GlobalException {
     })
     public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatus(HttpStatus.BAD_REQUEST.value());
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError(ex.getMessage());
         res.setMessage("Exception occurs...");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
@@ -35,7 +35,7 @@ public class GlobalException {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<RestResponse<Object>> handleNotFoundException(Exception ex) {
         RestResponse<Object> res = new RestResponse<>();
-        res.setStatus(HttpStatus.NOT_FOUND.value());
+        res.setStatusCode(HttpStatus.NOT_FOUND.value());
         res.setError(ex.getMessage());
         res.setMessage("404 Not Found. URL may not exist...");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
@@ -46,7 +46,7 @@ public class GlobalException {
         BindingResult result = ex.getBindingResult();
         final List<FieldError> filedErrors = result.getFieldErrors();
         RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatus(HttpStatus.BAD_REQUEST.value());
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError(ex.getBody().getDetail());
 
         List<String> errors = filedErrors.stream().map(f -> f.getDefaultMessage()).collect(Collectors.toList());
@@ -57,7 +57,7 @@ public class GlobalException {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<RestResponse<Object>> handleAuthenticationException(AuthenticationException ex) {
         RestResponse<Object> res = new RestResponse<>();
-        res.setStatus(HttpStatus.UNAUTHORIZED.value()); // 401
+        res.setStatusCode(HttpStatus.UNAUTHORIZED.value()); // 401
         res.setError(ex.getMessage());
         res.setMessage("Sai username hoặc password");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
@@ -68,7 +68,7 @@ public class GlobalException {
     })
     public ResponseEntity<RestResponse<Object>> handleUploadFileException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatus(HttpStatus.BAD_REQUEST.value());
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError(ex.getMessage());
         res.setMessage("File upload exception...");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
@@ -77,7 +77,7 @@ public class GlobalException {
     @ExceptionHandler(PermissionException.class)
     public ResponseEntity<RestResponse<Object>> handlePermissionException(PermissionException ex) {
         RestResponse<Object> res = new RestResponse<>();
-        res.setStatus(HttpStatus.FORBIDDEN.value());
+        res.setStatusCode(HttpStatus.FORBIDDEN.value());
         res.setError(ex.getMessage());
         res.setMessage("Forbidden");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);

@@ -39,7 +39,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType("application/json;charset=UTF-8");
         // nếu lỗi là do JWT invalid
         RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatus(HttpStatus.UNAUTHORIZED.value());
+        res.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         res.setError(authException.getCause().getMessage());
         res.setMessage("Token không hợp lệ");
         mapper.writeValue(response.getWriter(), res);

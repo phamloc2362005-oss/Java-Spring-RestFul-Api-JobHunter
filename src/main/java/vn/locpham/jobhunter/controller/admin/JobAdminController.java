@@ -1,4 +1,4 @@
-package vn.locpham.jobhunter.controller;
+package vn.locpham.jobhunter.controller.admin;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,11 +25,11 @@ import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
 
 @RestController
-@RequestMapping("/api/v1")
-public class JobController {
+@RequestMapping("/api/v1/admin")
+public class JobAdminController {
     private final JobService jobService;
 
-    public JobController(JobService jobService) {
+    public JobAdminController(JobService jobService) {
         this.jobService = jobService;
     }
 
@@ -66,7 +66,7 @@ public class JobController {
     public ResponseEntity<Job> fetchJobById(@PathVariable("id") Long id) throws IdInvalidException {
         Job currentUser = this.jobService.fetchJobById(id);
         if (currentUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+            throw new IdInvalidException("Job với id = " + id + " không tồn tại");
         }
         return ResponseEntity.status(HttpStatus.OK).body(this.jobService.fetchJobById(id));
 

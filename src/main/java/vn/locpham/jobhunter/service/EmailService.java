@@ -33,14 +33,14 @@ public class EmailService {
         this.jobRepository = jobRepository;
     }
 
-    public void sendEmail() {
-        // Implement email sending logic using mailSender
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo("phamloc2362005@gmail.com");
-        msg.setSubject("Test Email");
-        msg.setText("This is a test email sent from the EmailService.");
-        mailSender.send(msg);
-    }
+    // public void sendEmail() {
+    // // Implement email sending logic using mailSender
+    // SimpleMailMessage msg = new SimpleMailMessage();
+    // msg.setTo("phamloc2362005@gmail.com");
+    // msg.setSubject("Test Email");
+    // msg.setText("This is a test email sent from the EmailService.");
+    // mailSender.send(msg);
+    // }
 
     public void sendEmailSync(String to, String subject, String content, boolean isMultipart,
             boolean isHtml) {
@@ -64,6 +64,14 @@ public class EmailService {
         Context context = new Context();
         context.setVariable("name", username);
         context.setVariable("jobs", value);
+        String content = this.templateEngine.process(templateName, context);
+        this.sendEmailSync(to, subject, content, false, true);
+    }
+
+    @Async
+    public void sendOtpEmail(String to, String subject, String templateName, String otp) {
+        Context context = new Context();
+        context.setVariable("otp", otp);
         String content = this.templateEngine.process(templateName, context);
         this.sendEmailSync(to, subject, content, false, true);
     }

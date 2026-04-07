@@ -100,12 +100,12 @@ ResLoginDTO.UserInsideToken userToken = new ResLoginDTO.UserInsideToken();
         return new SecretKeySpec(keyBytes, 0, keyBytes.length, JWT_ALGORITHM.getName());
     }
 
-    public Jwt checkValidrefreshToken(String token){
+    public Jwt checkValidRefreshToken(String token){
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
                 .withSecretKey(getSecretKey())
                 .macAlgorithm(SecurityUtils.JWT_ALGORITHM)
                 .build();
-                try {
+                try { 
                     return jwtDecoder.decode(token);
                 } catch (Exception e) {
                     System.out.println(">>> Refresh Token error: " + e.getMessage());

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import vn.locpham.jobhunter.domain.Company;
@@ -25,7 +26,8 @@ public class UserService {
     private final CompanyService companyService;
     private final RoleService roleService;
 
-    public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService) {
+    public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.companyService = companyService;
         this.roleService = roleService;
@@ -186,4 +188,5 @@ public class UserService {
             this.userRepository.save(currentUser);
         }
     }
+
 }

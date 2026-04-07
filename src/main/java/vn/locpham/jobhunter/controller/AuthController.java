@@ -27,6 +27,8 @@ import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.SecurityUtils;
 import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -115,7 +117,7 @@ public class AuthController {
         // check valid
         Jwt decodedToken;
         try {
-            decodedToken = this.sercurityUtil.checkValidrefreshToken(refresh_token);
+            decodedToken = this.sercurityUtil.checkValidRefreshToken(refresh_token);
         } catch (Exception e) {
             throw new IdInvalidException("Refresh Token khong hop le hoac da het han");
         }
@@ -191,4 +193,5 @@ public class AuthController {
         User ericUser = this.userService.handleCreateUser(postManUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(ericUser));
     }
+
 }

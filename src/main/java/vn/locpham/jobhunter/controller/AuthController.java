@@ -80,7 +80,7 @@ public class AuthController {
         // set cookie
         ResponseCookie resCookies = ResponseCookie.from("refresh_token", refresh_token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(jwtRefreshExpirition)
                 .build();
@@ -150,7 +150,7 @@ public class AuthController {
         // set cookie
         ResponseCookie resCookies = ResponseCookie.from("refresh_token", new_refresh_token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(jwtRefreshExpirition)
                 .build();
@@ -170,7 +170,7 @@ public class AuthController {
         ResponseCookie deleteSpringCookie = ResponseCookie
                 .from("refresh_token", null)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(0)
                 .build();

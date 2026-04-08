@@ -41,6 +41,5 @@ public class JobClientController {
     @ApiMessage("Fetch all jobs")
     public ResponseEntity<ResultPaginationDTO> getAllJob(@Filter Specification<Job> spec, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(this.jobService.fetchAllJobs(spec, pageable));
-
     }
 }

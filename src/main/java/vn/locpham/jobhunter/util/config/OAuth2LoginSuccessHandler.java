@@ -62,7 +62,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         ResLoginDTO dto = buildResLoginDTO(user);
         String accessToken = securityUtils.createAccessToken(user.getEmail(), dto);
         String refreshToken = securityUtils.createRefreshToken(user.getEmail(), dto);
-
+        this.userService.updateUserToken(refreshToken, email);
         // trả về FE
         Cookie accessCookie = new Cookie("access_token", accessToken);
         accessCookie.setHttpOnly(true);

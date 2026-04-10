@@ -19,6 +19,7 @@ public class ResUpdateJobDTO {
     private Date startDate;
     private Date endDate;
     private List<String> skills;
+    private List<String> expertises;
     private boolean active;
     private Instant updatedAt;
     private String updatedBy;
@@ -117,6 +118,14 @@ public class ResUpdateJobDTO {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public List<String> getExpertises() {
+        return expertises;
+    }
+
+    public void setExpertises(List<String> expertises) {
+        this.expertises = expertises;
     }
 
 }

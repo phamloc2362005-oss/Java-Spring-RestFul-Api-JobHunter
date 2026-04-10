@@ -54,7 +54,7 @@ public class ResumeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.resumeService.convertToResCreateResumeDTO(resume));
     }
 
-    @PutMapping("resumes")
+    @PutMapping("/resumes")
     @ApiMessage("Create a resume")
     public ResponseEntity<ResUpdateResumeDTO> updateResume(@RequestBody Resume reqResume)
             throws IdInvalidException {
@@ -76,7 +76,7 @@ public class ResumeController {
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
-    @GetMapping("resumes/{id}")
+    @GetMapping("/resumes/{id}")
     @ApiMessage("Fetch a resume")
     public ResponseEntity<ResFetchResumeDTO> getResumeById(@PathVariable("id") long id) throws IdInvalidException {
         Resume resume = this.resumeService.fetchResumeById(id);

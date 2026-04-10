@@ -48,6 +48,10 @@ public class Job {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
+    private List<String> requireds;
+
+    private List<String> benefits;
+
     private Date startDate;
 
     private Date endDate;
@@ -62,6 +66,30 @@ public class Job {
 
     private String updatedBy;
 
+    public List<String> getRequireds() {
+        return requireds;
+    }
+
+    public void setRequireds(List<String> requireds) {
+        this.requireds = requireds;
+    }
+
+    public List<String> getBenefits() {
+        return benefits;
+    }
+
+    public void setBenefits(List<String> benefits) {
+        this.benefits = benefits;
+    }
+
+    public List<Expertise> getExpertises() {
+        return expertises;
+    }
+
+    public void setExpertises(List<Expertise> expertises) {
+        this.expertises = expertises;
+    }
+
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
@@ -70,6 +98,11 @@ public class Job {
     @JsonIgnoreProperties(value = { "jobs" })
     @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private List<Skill> skills;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "jobs" })
+    @JoinTable(name = "job_expertise", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "expertise_id"))
+    private List<Expertise> expertises;
 
     @JsonIgnore
     @OneToMany(mappedBy = "job")

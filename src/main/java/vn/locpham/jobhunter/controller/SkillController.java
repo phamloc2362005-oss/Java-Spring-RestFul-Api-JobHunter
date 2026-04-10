@@ -33,10 +33,9 @@ public class SkillController {
         this.skillService = skillService;
     }
 
-    @PostMapping("skills")
+    @PostMapping("/skills")
     @ApiMessage("Create a new skill")
     public ResponseEntity<Skill> createNewSkill(@Valid @RequestBody Skill postmanSkill) throws IdInvalidException {
-        // TODO: process POST request
         boolean isNameExist = this.skillService.isNameExist(postmanSkill.getName());
         if (isNameExist) {
             throw new IdInvalidException("Skill này đã tồn tại, vui lòng nhập skill khác");
@@ -45,8 +44,8 @@ public class SkillController {
         return ResponseEntity.status(HttpStatus.CREATED).body(skill);
     }
 
-    @PutMapping("skills")
-    @ApiMessage("Update a new skill")
+    @PutMapping("/skills")
+    @ApiMessage("Update a skill")
     public ResponseEntity<Skill> updateSkill(@Valid @RequestBody Skill reqSkill) throws IdInvalidException {
         boolean isNameExist = this.skillService.isNameExist(reqSkill.getName());
         if (isNameExist) {
@@ -56,7 +55,7 @@ public class SkillController {
         return ResponseEntity.status(HttpStatus.OK).body(skill);
     }
 
-    @GetMapping("skills/{id}")
+    @GetMapping("/skills/{id}")
     @ApiMessage("Fetch a skill")
     public ResponseEntity<Skill> getSkillById(@PathVariable("id") Long id) throws IdInvalidException {
         Skill currentSkill = this.skillService.fetchSkillById(id);
@@ -66,14 +65,14 @@ public class SkillController {
         return ResponseEntity.status(HttpStatus.OK).body(currentSkill);
     }
 
-    @GetMapping("skills")
+    @GetMapping("/skills")
     @ApiMessage("Fetch all skills")
     public ResponseEntity<ResultPaginationDTO> getAllSkill(@Filter Specification<Skill> spec, Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(this.skillService.fetchAllSkill(spec, pageable));
 
     }
 
-    @DeleteMapping("skills/{id}")
+    @DeleteMapping("/skills/{id}")
     @ApiMessage("Delete a skill")
     public ResponseEntity<Void> DeleteSkillById(@PathVariable("id") Long id) throws IdInvalidException {
         Skill currentSkill = this.skillService.fetchSkillById(id);

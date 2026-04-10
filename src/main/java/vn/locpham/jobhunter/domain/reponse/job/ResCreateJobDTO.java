@@ -19,6 +19,7 @@ public class ResCreateJobDTO {
     private Date startDate;
     private Date endDate;
     private List<String> skills;
+    private List<String> expertises;
     private boolean active;
     private Instant createdAt;
     private String createdBy;
@@ -117,6 +118,14 @@ public class ResCreateJobDTO {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public List<String> getExpertises() {
+        return expertises;
+    }
+
+    public void setExpertises(List<String> expertises) {
+        this.expertises = expertises;
     }
 
 }

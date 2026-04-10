@@ -90,6 +90,23 @@ public class DatabaseInitializer implements CommandLineRunner {
             arr.add(new Permission("Download a file", "/api/v1/files", "POST", "FILES"));
             arr.add(new Permission("Upload a file", "/api/v1/files", "GET", "FILES"));
 
+            arr.add(new Permission("Create a expertise", "/api/v1/expertise", "POST", "EXPERTISES"));
+            arr.add(new Permission("Update a expertise", "/api/v1/expertise", "PUT", "EXPERTISES"));
+            arr.add(new Permission("Delete a expertise", "/api/v1/expertise/{id}", "DELETE", "EXPERTISES"));
+            arr.add(new Permission("Get a expertise by id", "/api/v1/expertise/{id}", "GET", "EXPERTISES"));
+            arr.add(new Permission("Get expertise with pagination", "/api/v1/expertise", "GET", "EXPERTISES"));
+
+            arr.add(new Permission("Create a expertise category", "/api/v1/expertise-category", "POST",
+                    "EXPERTISE_CATEGORIES"));
+            arr.add(new Permission("Update a expertise category", "/api/v1/expertise-category", "PUT",
+                    "EXPERTISE_CATEGORIES"));
+            arr.add(new Permission("Delete a expertise category", "/api/v1/expertise-category/{id}", "DELETE",
+                    "EXPERTISE_CATEGORIES"));
+            arr.add(new Permission("Get a expertise category by id", "/api/v1/expertise-category/{id}", "GET",
+                    "EXPERTISE_CATEGORIES"));
+            arr.add(new Permission("Get expertise categories with pagination", "/api/v1/expertise-category", "GET",
+                    "EXPERTISE_CATEGORIES"));
+
             this.permissionRepository.saveAll(arr);
         }
 

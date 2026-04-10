@@ -10,12 +10,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.locpham.jobhunter.domain.Company;
+import vn.locpham.jobhunter.domain.Expertise;
 import vn.locpham.jobhunter.domain.Job;
 import vn.locpham.jobhunter.domain.Skill;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.reponse.job.ResCreateJobDTO;
 import vn.locpham.jobhunter.domain.reponse.job.ResUpdateJobDTO;
 import vn.locpham.jobhunter.repository.CompanyRepository;
+import vn.locpham.jobhunter.repository.ExpertiseRepository;
 import vn.locpham.jobhunter.repository.JobRepository;
 import vn.locpham.jobhunter.repository.SkillRepository;
 
@@ -24,12 +26,14 @@ public class JobService {
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
     private final CompanyRepository companyRepository;
+    private final ExpertiseRepository expertiseRepository;
 
     public JobService(JobRepository jobRepository, SkillRepository skillRepository,
-            CompanyRepository companyRepository) {
+            CompanyRepository companyRepository, ExpertiseRepository expertiseRepository) {
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
+        this.expertiseRepository = expertiseRepository;
     }
 
     public Job fetchJobById(long id) {
@@ -45,6 +49,11 @@ public class JobService {
             List<Long> reqSkills = job.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
             List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
             job.setSkills(dbSkills);
+        }
+        if (job.getExpertises() != null) {
+            List<Long> reqExpertises = job.getExpertises().stream().map(x -> x.getId()).collect(Collectors.toList());
+            List<Expertise> dbExpertises = this.expertiseRepository.findByIdIn(reqExpertises);
+            job.setExpertises(dbExpertises);
         }
 
         if (job.getCompany() != null) {
@@ -70,6 +79,11 @@ public class JobService {
             List<String> skills = currentJob.getSkills().stream().map(x -> x.getName()).collect(Collectors.toList());
             res.setSkills(skills);
         }
+        if (currentJob.getExpertises() != null) {
+            List<String> expertises = currentJob.getExpertises().stream().map(x -> x.getName())
+                    .collect(Collectors.toList());
+            res.setExpertises(expertises);
+        }
 
         return res;
     }
@@ -79,6 +93,12 @@ public class JobService {
             List<Long> reqSkills = reqJob.getSkills().stream().map(x -> x.getId()).collect(Collectors.toList());
             List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
             jobInDB.setSkills(dbSkills);
+        }
+
+        if (reqJob.getExpertises() != null) {
+            List<Long> reqExpertises = reqJob.getExpertises().stream().map(x -> x.getId()).collect(Collectors.toList());
+            List<Expertise> dbExpertises = this.expertiseRepository.findByIdIn(reqExpertises);
+            jobInDB.setExpertises(dbExpertises);
         }
         if (reqJob.getCompany() != null) {
             Optional<Company> comOptional = this.companyRepository.findById(reqJob.getCompany().getId());
@@ -111,6 +131,12 @@ public class JobService {
         if (currentJob.getSkills() != null) {
             List<String> skills = currentJob.getSkills().stream().map(x -> x.getName()).collect(Collectors.toList());
             res.setSkills(skills);
+        }
+
+        if (currentJob.getExpertises() != null) {
+            List<String> expertises = currentJob.getExpertises().stream().map(x -> x.getName())
+                    .collect(Collectors.toList());
+            res.setExpertises(expertises);
         }
         return res;
     }

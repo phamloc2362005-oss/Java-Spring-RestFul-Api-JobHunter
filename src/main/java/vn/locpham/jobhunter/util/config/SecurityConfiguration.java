@@ -99,9 +99,9 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
                                 .anyRequest().authenticated())
-                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2LoginSuccessHandler))
+                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2LoginSuccessHandler)) // cách đăng nhập
                 .oauth2ResourceServer((oauth2) -> oauth2
-                        .bearerTokenResolver(cookieBearerTokenResolver)
+                        .bearerTokenResolver(cookieBearerTokenResolver) // cách xác thực token khi gọi API
                         .jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .exceptionHandling(

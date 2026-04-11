@@ -47,10 +47,10 @@ public class Job {
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
-
-    private List<String> requireds;
-
-    private List<String> benefits;
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String requireds;
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String benefits;
 
     private Date startDate;
 
@@ -65,22 +65,6 @@ public class Job {
     private String createdBy;
 
     private String updatedBy;
-
-    public List<String> getRequireds() {
-        return requireds;
-    }
-
-    public void setRequireds(List<String> requireds) {
-        this.requireds = requireds;
-    }
-
-    public List<String> getBenefits() {
-        return benefits;
-    }
-
-    public void setBenefits(List<String> benefits) {
-        this.benefits = benefits;
-    }
 
     public List<Expertise> getExpertises() {
         return expertises;
@@ -234,6 +218,22 @@ public class Job {
 
     public void setSkills(List<Skill> skills) {
         this.skills = skills;
+    }
+
+    public String getRequireds() {
+        return requireds;
+    }
+
+    public void setRequireds(String requireds) {
+        this.requireds = requireds;
+    }
+
+    public String getBenefits() {
+        return benefits;
+    }
+
+    public void setBenefits(String benefits) {
+        this.benefits = benefits;
     }
 
     @PrePersist

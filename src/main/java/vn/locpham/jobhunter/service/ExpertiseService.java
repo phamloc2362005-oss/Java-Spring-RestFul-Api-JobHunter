@@ -10,20 +10,24 @@ import org.springframework.stereotype.Service;
 
 import vn.locpham.jobhunter.domain.Expertise;
 import vn.locpham.jobhunter.domain.ExpertiseCategory;
+import vn.locpham.jobhunter.domain.Job;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.reponse.expertise.ResCreateExpertiseDTO;
 import vn.locpham.jobhunter.domain.reponse.expertise.ResUpdateExpertiseDTO;
 import vn.locpham.jobhunter.repository.ExpertiseRepository;
+import vn.locpham.jobhunter.repository.JobRepository;
 
 @Service
 public class ExpertiseService {
     private final ExpertiseRepository expertiseRepository;
     private final ExpertiseCategoryService expertiseCategoryService;
+    private final JobRepository jobRepository;
 
     public ExpertiseService(ExpertiseRepository expertiseRepository,
-            ExpertiseCategoryService expertiseCategoryService) {
+            ExpertiseCategoryService expertiseCategoryService, JobRepository jobRepository) {
         this.expertiseRepository = expertiseRepository;
         this.expertiseCategoryService = expertiseCategoryService;
+        this.jobRepository = jobRepository;
     }
 
     public boolean isNameExist(String name) {
@@ -92,7 +96,8 @@ public class ExpertiseService {
         if (expertiseOptional.isEmpty())
             return;
         Expertise currentExpertise = expertiseOptional.get();
-        currentExpertise.getJobs().forEach(job -> job.getExpertises().remove(currentExpertise));
+        List<Job> jobs = currentExpertise.getJobs();
+        this.jobRepository.deleteAll(jobs);
         this.expertiseRepository.delete(currentExpertise);
     }
 }

@@ -68,14 +68,6 @@ public class Job {
 
     private String updatedBy;
 
-    public List<Expertise> getExpertises() {
-        return expertises;
-    }
-
-    public void setExpertises(List<Expertise> expertises) {
-        this.expertises = expertises;
-    }
-
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
@@ -85,10 +77,9 @@ public class Job {
     @JoinTable(name = "job_skill", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private List<Skill> skills;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "jobs" })
-    @JoinTable(name = "job_expertise", joinColumns = @JoinColumn(name = "job_id"), inverseJoinColumns = @JoinColumn(name = "expertise_id"))
-    private List<Expertise> expertises;
+    @ManyToOne
+    @JoinColumn(name = "expertise_id")
+    private Expertise expertise;
 
     @JsonIgnore
     @OneToMany(mappedBy = "job")
@@ -260,6 +251,14 @@ public class Job {
 
     public void setResumes(List<Resume> resumes) {
         this.resumes = resumes;
+    }
+
+    public Expertise getExpertise() {
+        return expertise;
+    }
+
+    public void setExpertise(Expertise expertise) {
+        this.expertise = expertise;
     }
 
 }

@@ -27,13 +27,16 @@ public class JobService {
     private final SkillRepository skillRepository;
     private final CompanyRepository companyRepository;
     private final ExpertiseRepository expertiseRepository;
+    private final ExpertiseService expertiseService;
 
     public JobService(JobRepository jobRepository, SkillRepository skillRepository,
-            CompanyRepository companyRepository, ExpertiseRepository expertiseRepository) {
+            CompanyRepository companyRepository, ExpertiseRepository expertiseRepository,
+            ExpertiseService expertiseService) {
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
         this.expertiseRepository = expertiseRepository;
+        this.expertiseService = expertiseService;
     }
 
     public Job fetchJobById(long id) {
@@ -50,10 +53,9 @@ public class JobService {
             List<Skill> dbSkills = this.skillRepository.findByIdIn(reqSkills);
             job.setSkills(dbSkills);
         }
-        if (job.getExpertises() != null) {
-            List<Long> reqExpertises = job.getExpertises().stream().map(x -> x.getId()).collect(Collectors.toList());
-            List<Expertise> dbExpertises = this.expertiseRepository.findByIdIn(reqExpertises);
-            job.setExpertises(dbExpertises);
+        if (job.getExpertise() != null) {
+            Expertise dbExpertises = this.expertiseService.fetchExpertiseById(job.getExpertise().getId());
+            job.setExpertise(dbExpertises);
         }
 
         if (job.getCompany() != null) {
@@ -64,25 +66,51 @@ public class JobService {
         }
         Job currentJob = this.jobRepository.save(job);
         ResCreateJobDTO res = new ResCreateJobDTO();
-        res.setId(currentJob.getId());
-        res.setName(currentJob.getName());
-        res.setActive(currentJob.isActive());
-        res.setLocation(currentJob.getLocation());
-        res.setLevel(currentJob.getLevel());
-        res.setQuantity(currentJob.getQuantity());
-        res.setSalary(currentJob.getSalary());
-        res.setEndDate(currentJob.getEndDate());
-        res.setStartDate(currentJob.getStartDate());
-        res.setCreatedAt(currentJob.getCreatedAt());
-        res.setCreatedBy(currentJob.getCreatedBy());
+
+        if (currentJob.getName() != null) {
+            res.setName(currentJob.getName());
+        }
+
+        res.setActive(currentJob.isActive()); // boolean primitive → không null
+
+        if (currentJob.getLocation() != null) {
+            res.setLocation(currentJob.getLocation());
+        }
+
+        if (currentJob.getLevel() != null) {
+            res.setLevel(currentJob.getLevel());
+        }
+
+        if (currentJob.getQuantity() != 0) {
+            res.setQuantity(currentJob.getQuantity());
+        }
+
+        if (currentJob.getSalary() != 0) {
+            res.setSalary(currentJob.getSalary());
+        }
+
+        if (currentJob.getEndDate() != null) {
+            res.setEndDate(currentJob.getEndDate());
+        }
+
+        if (currentJob.getStartDate() != null) {
+            res.setStartDate(currentJob.getStartDate());
+        }
+
+        if (currentJob.getCreatedAt() != null) {
+            res.setCreatedAt(currentJob.getCreatedAt());
+        }
+
+        if (currentJob.getCreatedBy() != null) {
+            res.setCreatedBy(currentJob.getCreatedBy());
+        }
         if (currentJob.getSkills() != null) {
             List<String> skills = currentJob.getSkills().stream().map(x -> x.getName()).collect(Collectors.toList());
             res.setSkills(skills);
         }
-        if (currentJob.getExpertises() != null) {
-            List<String> expertises = currentJob.getExpertises().stream().map(x -> x.getName())
-                    .collect(Collectors.toList());
-            res.setExpertises(expertises);
+        if (currentJob.getExpertise() != null) {
+            String dbExpertises = this.expertiseService.fetchExpertiseById(currentJob.getExpertise().getId()).getName();
+            res.setExpertise(dbExpertises);
         }
 
         return res;
@@ -95,10 +123,9 @@ public class JobService {
             jobInDB.setSkills(dbSkills);
         }
 
-        if (reqJob.getExpertises() != null) {
-            List<Long> reqExpertises = reqJob.getExpertises().stream().map(x -> x.getId()).collect(Collectors.toList());
-            List<Expertise> dbExpertises = this.expertiseRepository.findByIdIn(reqExpertises);
-            jobInDB.setExpertises(dbExpertises);
+        if (reqJob.getExpertise() != null) {
+            Expertise dbExpertises = this.expertiseService.fetchExpertiseById(reqJob.getExpertise().getId());
+            jobInDB.setExpertise(dbExpertises);
         }
         if (reqJob.getCompany() != null) {
             Optional<Company> comOptional = this.companyRepository.findById(reqJob.getCompany().getId());
@@ -107,16 +134,46 @@ public class JobService {
             }
         }
 
-        jobInDB.setName(reqJob.getName());
-        jobInDB.setSalary(reqJob.getSalary());
-        jobInDB.setQuantity(reqJob.getQuantity());
-        jobInDB.setLocation(reqJob.getLocation());
-        jobInDB.setDescription(reqJob.getDescription());
-        jobInDB.setRequired(reqJob.getRequired());
-        jobInDB.setBenefit(reqJob.getBenefit());
-        jobInDB.setLevel(reqJob.getLevel());
-        jobInDB.setStartDate(reqJob.getStartDate());
-        jobInDB.setEndDate(reqJob.getEndDate());
+        if (reqJob.getName() != null) {
+            jobInDB.setName(reqJob.getName());
+        }
+
+        if (reqJob.getSalary() != 0) {
+            jobInDB.setSalary(reqJob.getSalary());
+        }
+
+        if (reqJob.getQuantity() != 0) {
+            jobInDB.setQuantity(reqJob.getQuantity());
+        }
+
+        if (reqJob.getLocation() != null) {
+            jobInDB.setLocation(reqJob.getLocation());
+        }
+
+        if (reqJob.getDescription() != null) {
+            jobInDB.setDescription(reqJob.getDescription());
+        }
+
+        if (reqJob.getRequired() != null) {
+            jobInDB.setRequired(reqJob.getRequired());
+        }
+
+        if (reqJob.getBenefit() != null) {
+            jobInDB.setBenefit(reqJob.getBenefit());
+        }
+
+        if (reqJob.getLevel() != null) {
+            jobInDB.setLevel(reqJob.getLevel());
+        }
+
+        if (reqJob.getStartDate() != null) {
+            jobInDB.setStartDate(reqJob.getStartDate());
+        }
+
+        if (reqJob.getEndDate() != null) {
+            jobInDB.setEndDate(reqJob.getEndDate());
+        }
+
         jobInDB.setActive(reqJob.isActive());
 
         Job currentJob = this.jobRepository.save(jobInDB);
@@ -136,10 +193,9 @@ public class JobService {
             res.setSkills(skills);
         }
 
-        if (currentJob.getExpertises() != null) {
-            List<String> expertises = currentJob.getExpertises().stream().map(x -> x.getName())
-                    .collect(Collectors.toList());
-            res.setExpertises(expertises);
+        if (currentJob.getExpertise() != null) {
+            String dbExpertises = this.expertiseService.fetchExpertiseById(currentJob.getExpertise().getId()).getName();
+            res.setExpertise(dbExpertises);
         }
         return res;
     }

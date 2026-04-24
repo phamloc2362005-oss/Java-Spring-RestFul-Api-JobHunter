@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -36,7 +37,7 @@ public class Expertise {
 
     private String updatedBy;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "expertises")
+    @OneToMany(mappedBy = "expertise")
     @JsonIgnore
     private List<Job> jobs;
 

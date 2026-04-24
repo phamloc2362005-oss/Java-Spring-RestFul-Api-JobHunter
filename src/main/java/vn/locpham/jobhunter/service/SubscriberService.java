@@ -54,11 +54,16 @@ public class SubscriberService {
         return subscriberRepository.save(subsDB);
     }
 
+    // convert Job -> DTO gửi mail
     public ResEmailJob convertToResEmailJob(Job job) {
         ResEmailJob res = new ResEmailJob();
         res.setName(job.getName());
         res.setSalary(job.getSalary());
+
+        // company
         res.setCompany(new ResEmailJob.CompanyEmail(job.getCompany().getName()));
+
+        // skill list
         List<Skill> skills = job.getSkills();
         List<ResEmailJob.SkillEmail> s = skills.stream().map(skill -> new ResEmailJob.SkillEmail(skill.getName()))
                 .collect(Collectors.toList());
@@ -66,14 +71,18 @@ public class SubscriberService {
         return res;
     }
 
+    // gửi mail job cho subscriber
     public void sendSubscriberEmailJobs() {
         List<Subscriber> subscribers = subscriberRepository.findAll();
         for (Subscriber subscriber : subscribers) {
             List<Skill> listSkills = subscriber.getSkills();
             if (listSkills != null && !listSkills.isEmpty()) {
+                // tìm job theo skill
                 List<Job> listJobs = this.jobRepository.findBySkillsIn(listSkills);
                 if (listJobs != null && !listJobs.isEmpty()) {
                     List<ResEmailJob> arr = listJobs.stream().map(job -> this.convertToResEmailJob(job)).toList();
+
+                    // gửi email
                     this.emailService.sendEmailFromTemplateSync(
                             subscriber.getEmail(),
                             "Cơ hội việc làm hot đang chờ đón bạn, khám phá ngay",

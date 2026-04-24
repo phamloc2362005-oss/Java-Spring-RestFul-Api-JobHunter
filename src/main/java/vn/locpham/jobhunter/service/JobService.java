@@ -112,8 +112,8 @@ public class JobService {
         jobInDB.setQuantity(reqJob.getQuantity());
         jobInDB.setLocation(reqJob.getLocation());
         jobInDB.setDescription(reqJob.getDescription());
-        jobInDB.setRequireds(reqJob.getRequireds());
-        jobInDB.setBenefits(reqJob.getBenefits());
+        jobInDB.setRequired(reqJob.getRequired());
+        jobInDB.setBenefit(reqJob.getBenefit());
         jobInDB.setLevel(reqJob.getLevel());
         jobInDB.setStartDate(reqJob.getStartDate());
         jobInDB.setEndDate(reqJob.getEndDate());

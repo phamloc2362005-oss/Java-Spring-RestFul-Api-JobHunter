@@ -19,10 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileService {
-
+    // lấy base path từ application.properties
     @Value("${locpham.upload-file.base-uri}")
     private String baseUri;
 
+    // tạo folder nếu chưa tồn tại
     public void createUploadFolder(String folder) throws URISyntaxException {
         URI uri = new URI(folder);
         Path path = Paths.get(uri);
@@ -39,9 +40,10 @@ public class FileService {
         }
     }
 
+    // lưu file upload
     public String store(MultipartFile file, String folder) throws URISyntaxException,
             IOException {
-        // create unique filename
+        // tạo tên unique tránh trùng
         String finalName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
         URI uri = new URI(baseUri + folder + "/" + finalName);
         Path path = Paths.get(uri);
@@ -52,6 +54,7 @@ public class FileService {
         return finalName;
     }
 
+    // lấy size file
     public long getFileLength(String fileName, String folder) throws URISyntaxException {
         URI uri = new URI(baseUri + folder + "/" + fileName);
         Path path = Paths.get(uri);
@@ -61,6 +64,7 @@ public class FileService {
         return tmpDir.length();
     }
 
+    // trả file về cho client (download)
     public InputStreamResource getResource(String fileName, String folder)
             throws FileNotFoundException, URISyntaxException {
         URI uri = new URI(baseUri + folder + "/" + fileName);

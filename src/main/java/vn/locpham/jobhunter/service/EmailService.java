@@ -41,7 +41,7 @@ public class EmailService {
     // msg.setText("This is a test email sent from the EmailService.");
     // mailSender.send(msg);
     // }
-
+    // hàm gửi mail cơ bản
     public void sendEmailSync(String to, String subject, String content, boolean isMultipart,
             boolean isHtml) {
         // Prepare message using a Spring helper
@@ -58,6 +58,7 @@ public class EmailService {
         }
     }
 
+    // mail gửi job cho người đăng kí
     @Async
     public void sendEmailFromTemplateSync(String to, String subject, String templateName, String username,
             Object value) {
@@ -68,6 +69,7 @@ public class EmailService {
         this.sendEmailSync(to, subject, content, false, true);
     }
 
+    // mail gửi otp
     @Async
     public void sendOtpEmail(String to, String subject, String templateName, String otp) {
         Context context = new Context();

@@ -47,6 +47,7 @@ public class RoleService {
 
     public Role updateRole(Role reqRole) {
         Role roleDB = this.fetchRoleById(reqRole.getId());
+        // update permission giống create
         if (reqRole.getPermissions() != null) {
             List<Long> reqPermissions = reqRole.getPermissions().stream()
                     .map(x -> x.getId()).collect(Collectors.toList());

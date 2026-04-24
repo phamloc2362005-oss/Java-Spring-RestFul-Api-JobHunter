@@ -21,6 +21,7 @@ import vn.locpham.jobhunter.domain.reponse.RestResponse;
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    // delegate mặc định của Spring để set status + header
     private final AuthenticationEntryPoint delegate = new BearerTokenAuthenticationEntryPoint();
     private final ObjectMapper mapper;
 
@@ -34,10 +35,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             HttpServletResponse response,
             AuthenticationException authException) throws IOException, ServletException {
 
-        // để BearerTokenAuthenticationEntryPoint set status + header WWW-Authenticate
+        // để Spring set status 401 và WWW-Authenticate header trước
         this.delegate.commence(request, response, authException);
         response.setContentType("application/json;charset=UTF-8");
-        // nếu lỗi là do JWT invalid
+        // tự build lại response JSON lỗi theo format của project
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         res.setError(authException.getCause().getMessage());

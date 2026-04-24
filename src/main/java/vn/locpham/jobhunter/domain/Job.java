@@ -47,10 +47,12 @@ public class Job {
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
+
     @Column(columnDefinition = "MEDIUMTEXT")
-    private String requireds;
+    private String required;
+
     @Column(columnDefinition = "MEDIUMTEXT")
-    private String benefits;
+    private String benefit;
 
     private Date startDate;
 
@@ -220,20 +222,20 @@ public class Job {
         this.skills = skills;
     }
 
-    public String getRequireds() {
-        return requireds;
+    public String getRequired() {
+        return required;
     }
 
-    public void setRequireds(String requireds) {
-        this.requireds = requireds;
+    public void setRequired(String required) {
+        this.required = required;
     }
 
-    public String getBenefits() {
-        return benefits;
+    public String getBenefit() {
+        return benefit;
     }
 
-    public void setBenefits(String benefits) {
-        this.benefits = benefits;
+    public void setBenefit(String benefit) {
+        this.benefit = benefit;
     }
 
     @PrePersist

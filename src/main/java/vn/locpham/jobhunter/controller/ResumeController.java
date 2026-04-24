@@ -95,7 +95,7 @@ public class ResumeController {
     // pageable));
 
     // }
-
+    // GET ALL RESUME (có filter theo company của user)
     @GetMapping("/resumes")
     @ApiMessage("Fetch all resume with paginate")
     public ResponseEntity<ResultPaginationDTO> fetchAll(
@@ -103,9 +103,11 @@ public class ResumeController {
             Pageable pageable) {
 
         List<Long> arrJobIds = null;
+        // lấy email user hiện tại từ token
         String email = SecurityUtils.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtils.getCurrentUserLogin().get()
                 : "";
+        // lấy user từ DB
         User currentUser = this.userService.handleGetUserByUsername(email);
         if (currentUser != null) {
             Company userCompany = currentUser.getCompany();
@@ -113,6 +115,7 @@ public class ResumeController {
                 List<Job> companyJobs = userCompany.getJobs();
                 System.out.println("DEBUG: Số jobs lấy được: " + (companyJobs != null ? companyJobs.size() : 0));
                 if (companyJobs != null && !companyJobs.isEmpty()) {
+                    // lấy danh sách jobId của công ty
                     arrJobIds = companyJobs.stream().map(x -> x.getId())
                             .collect(Collectors.toList());
                     System.out.println("DEBUG: Job IDs: " + arrJobIds);

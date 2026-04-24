@@ -63,7 +63,9 @@ public class SkillService {
     public void handleDeleteSkill(long id) {
         Optional<Skill> skillOptional = this.skillRepository.findById(id);
         Skill currentSkill = skillOptional.get();
+        // remove quan hệ với job
         currentSkill.getJobs().forEach(job -> job.getSkills().remove(currentSkill));
+        // remove quan hệ với subscriber
         currentSkill.getSubscribers().forEach(sub -> sub.getSkills().remove(currentSkill));
         this.skillRepository.delete(currentSkill);
     }

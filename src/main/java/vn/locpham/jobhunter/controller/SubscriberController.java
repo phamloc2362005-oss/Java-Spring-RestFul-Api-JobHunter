@@ -31,7 +31,7 @@ public class SubscriberController {
         boolean isEmailExist = this.subscriberService.existsByEmail(postmanSubscriber.getEmail());
         if (isEmailExist) {
             throw new IdInvalidException(
-                    "Email " + postmanSubscriber.getEmail() + "đã tồn tại, vui lòng sử dụng email khác");
+                    "Email " + postmanSubscriber.getEmail() + " đã tồn tại, vui lòng sử dụng email khác");
         }
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(this.subscriberService.createSubscriber(postmanSubscriber));

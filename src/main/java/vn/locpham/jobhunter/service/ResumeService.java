@@ -57,6 +57,8 @@ public class ResumeService {
     public Resume handleCreateNewResume(Resume resume) throws IdInvalidException {
         User user = resume.getUser();
         Job job = resume.getJob();
+
+        // check user + job có tồn tại không
         if (this.userService.fetchUserById(user.getId()) == null || this.jobService.fetchJobById(job.getId()) == null) {
             throw new IdInvalidException("User/Job voi id tai len khong ton tai");
         }
@@ -75,6 +77,7 @@ public class ResumeService {
         this.resumeRepository.deleteById(id);
     }
 
+    // lấy danh sách resume + map sang DTO
     public ResultPaginationDTO fetchAllResume(Specification<Resume> spec, Pageable pageable) {
         Page<Resume> pageResumes = this.resumeRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
@@ -94,9 +97,11 @@ public class ResumeService {
                         item.getUpdatedAt(),
                         item.getCreatedBy(),
                         item.getUpdatedBy(),
+                        // map user
                         new ResFetchResumeDTO.UserResume(
                                 item.getUser() != null ? item.getUser().getId() : 0,
                                 item.getUser() != null ? item.getUser().getName() : null),
+                        // map job
                         new ResFetchResumeDTO.JobResume(
                                 item.getJob() != null ? item.getJob().getId() : 0,
                                 item.getJob() != null ? item.getJob().getName() : null)))
@@ -149,6 +154,7 @@ public class ResumeService {
         return res;
     }
 
+    // lấy resume của user đang login
     public ResultPaginationDTO fetchResumeByUser(Pageable pageable) {
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
         FilterNode node = filterParser.parse("email='" + email + "'");

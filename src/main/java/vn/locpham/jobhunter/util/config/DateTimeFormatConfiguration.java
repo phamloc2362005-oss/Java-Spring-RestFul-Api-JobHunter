@@ -14,6 +14,8 @@ public class DateTimeFormatConfiguration implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
         DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+
+        // dùng format ISO: 2026-04-21T10:00:00
         registrar.setUseIsoFormat(true);
         registrar.registerFormatters(registry);
     }

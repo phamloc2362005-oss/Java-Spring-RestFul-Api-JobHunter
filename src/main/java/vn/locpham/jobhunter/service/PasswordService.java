@@ -35,26 +35,34 @@ public class PasswordService {
         this.emailService = emailService;
     }
 
+    // tạo OTP random 6 số
     private String generateOtp() {
         int otp = new Random().nextInt(1000000);
         return String.format("%06d", otp);
     }
 
+    // đổi mật khẩu khi đang đăng nhập
     public void handleChangePassword(ReqChangePassword req) throws IdInvalidException {
+        // lấy email user đang login
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
         User user = this.userRepository.findByEmail(email);
         String passDB = user.getPassword();
+        // check mật khẩu cũ đúng không
         if (!this.passwordEncoder.matches(req.getOldPassword(), passDB)) {
             throw new IdInvalidException("Mật khẩu không hợp lệ");
         }
+
+        // không cho dùng lại mật khẩu cũ
         if (req.getNewPassword().equals(req.getOldPassword())) {
             throw new IdInvalidException("Không sử dụng lại mật khẩu cũ");
         }
+        // encode password mới
         String hashPassword = this.passwordEncoder.encode(req.getNewPassword());
         user.setPassword(hashPassword);
         this.userRepository.save(user);
     }
 
+    // gửi OTP khi quên mật khẩu
     public void handleForgotPassword(ReqForgotPassword req) throws IdInvalidException {
         String mailReq = req.getEmail();
         User user = this.userRepository.findByEmail(mailReq);
@@ -62,6 +70,7 @@ public class PasswordService {
             throw new IdInvalidException("Email không hợp lệ");
         }
         String otp = this.generateOtp();
+        // tìm hoặc tạo record reset password
         PasswordReset reset = this.passwordRepository.findByUserId(user.getId())
                 .orElse(new PasswordReset());
         reset.setUserId(user.getId());
@@ -86,6 +95,7 @@ public class PasswordService {
         if (pr.getOtpExpiryTime().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("OTP đã hết hạn");
         }
+        // check OTP đúng không
         if (pr.getOtp() == null || !pr.getOtp().equals(req.getOtp())) {
             throw new IdInvalidException("OTP không hợp lệ");
         }
@@ -105,18 +115,23 @@ public class PasswordService {
         if (pr == null) {
             throw new IdInvalidException("Không hợp lệ");
         }
+
+        // check OTP hết hạn
         if (pr.getOtpExpiryTime().isBefore(LocalDateTime.now())) {
             throw new IdInvalidException("OTP đã hết hạn");
         }
         if (!pr.isVeryfied()) {
             throw new IdInvalidException("Không hợp lệ");
         }
+
+        // không cho dùng lại mật khẩu cũ
         if (this.passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
             throw new IdInvalidException("Không sử dụng lại mật khẩu cũ");
         }
         String hashPassword = this.passwordEncoder.encode(req.getNewPassword());
         user.setPassword(hashPassword);
         this.userRepository.save(user);
+        // xóa record OTP
         this.passwordRepository.deleteByUserId(user.getId());
     }
 

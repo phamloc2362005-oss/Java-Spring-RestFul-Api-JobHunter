@@ -21,6 +21,8 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         // TODO Auto-generated method stub
+        // luôn bật format response cho tất cả controller
+        // mọi response body đều đi qua beforeBodyWrite
         return true;
     }
 
@@ -31,16 +33,22 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
             Class selectedConverterType,
             ServerHttpRequest request,
             ServerHttpResponse response) {
+        // lấy HttpServletResponse để biết status code hiện tại
         HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
         int status = servletResponse.getStatus();
+        // object chuẩn của project để trả về FE
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(status);
+        // nếu response là String hoặc file Resource thì không bọc lại để tránh lỗi
+        // format
         if (body instanceof String || body instanceof Resource) {
             return body;
         }
+        // nếu status >= 400 thì thường body lỗi đã được xử lý rồi không bọc thêm nữa
         if (status >= 400) {
             return body;
         } else {
+            // với response thành công thì nhét body vào field data
             res.setData(body);
             ApiMessage message = returnType.getMethodAnnotation(ApiMessage.class);
             res.setMessage(message != null ? message.value() : "CALL API SUCCESS");

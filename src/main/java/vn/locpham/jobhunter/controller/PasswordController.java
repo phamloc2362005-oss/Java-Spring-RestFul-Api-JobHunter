@@ -33,21 +33,27 @@ public class PasswordController {
         return ResponseEntity.ok(null);
     }
 
+    // gửi otp
     @PostMapping("/password/forgot")
     @ApiMessage("Forgot password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ReqForgotPassword req) throws IdInvalidException {
+        // gửi OTP về email
         this.passwordService.handleForgotPassword(req);
         return ResponseEntity.ok(null);
     }
 
+    // verify otp
     @PostMapping("/password/otp")
     public ResponseEntity<Void> verifyOtp(@Valid @RequestBody ReqVerifyOtp req) throws IdInvalidException {
+        // check OTP đúng không
         this.passwordService.handleVerifyOtp(req);
         return ResponseEntity.ok(null);
     }
 
+    // reset password
     @PostMapping("/password/reset")
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ReqResetPassword req) throws IdInvalidException {
+        // đổi password sau khi OTP hợp lệ
         this.passwordService.handleResetPassword(req);
         return ResponseEntity.ok(null);
     }

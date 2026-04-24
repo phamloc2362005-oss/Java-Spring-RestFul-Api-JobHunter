@@ -19,6 +19,13 @@ import vn.locpham.jobhunter.domain.reponse.RestResponse;
 
 @RestControllerAdvice
 public class GlobalException {
+
+    // Bắt các lỗi dạng:
+    // UsernameNotFoundException: không tìm thấy user
+    // BadCredentialsException: sai mật khẩu / sai thông tin login
+    // IdInvalidException: id/token/email không hợp lệ (custom exception của
+    // project)
+    // Khi gặp các lỗi này thì trả về response 400
     @ExceptionHandler(value = {
             UsernameNotFoundException.class,
             BadCredentialsException.class,
@@ -32,6 +39,8 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
+    // Bắt lỗi 404 khi URL không tồn tại
+    // ví dụ gọi sai endpoint /api/v1/abcxyz
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<RestResponse<Object>> handleNotFoundException(Exception ex) {
         RestResponse<Object> res = new RestResponse<>();
@@ -43,17 +52,23 @@ public class GlobalException {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestResponse<Object>> validationError(MethodArgumentNotValidException ex) {
+        // BindingResult chứa toàn bộ lỗi validate
         BindingResult result = ex.getBindingResult();
+        // lấy danh sách lỗi theo từng field
         final List<FieldError> filedErrors = result.getFieldErrors();
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        // detail mặc định của Spring
         res.setError(ex.getBody().getDetail());
-
+        // lấy message custom từ annotation
         List<String> errors = filedErrors.stream().map(f -> f.getDefaultMessage()).collect(Collectors.toList());
+        // nếu có nhiều lỗi -> trả list
+        // nếu chỉ 1 lỗi -> trả 1 string
         res.setMessage(errors.size() > 1 ? errors : errors.get(0));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
+    // Bắt lỗi xác thực của Spring Security
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<RestResponse<Object>> handleAuthenticationException(AuthenticationException ex) {
         RestResponse<Object> res = new RestResponse<>();
@@ -63,6 +78,7 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
     }
 
+    // Bắt lỗi upload file / xử lý file
     @ExceptionHandler(value = {
             StorageException.class
     })
@@ -74,6 +90,7 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
+    // Bắt lỗi phân quyền
     @ExceptionHandler(PermissionException.class)
     public ResponseEntity<RestResponse<Object>> handlePermissionException(PermissionException ex) {
         RestResponse<Object> res = new RestResponse<>();

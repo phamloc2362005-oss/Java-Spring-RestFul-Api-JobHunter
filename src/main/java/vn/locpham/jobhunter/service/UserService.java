@@ -34,14 +34,17 @@ public class UserService {
     }
 
     public User handleCreateUser(User user) {
+        // nếu user có company thì lấy company thật từ DB gắn vào
         if (user.getCompany() != null) {
             Optional<Company> comOptional = this.companyService.findById(user.getCompany().getId());
             user.setCompany(comOptional.isPresent() ? comOptional.get() : null);
         }
+        // nếu user có role thì lấy role thật từ DB gắn vào
         if (user.getRole() != null) {
             Role role = this.roleService.fetchRoleById(user.getRole().getId());
             user.setRole(role);
         }
+        // lưu user vào DB
         return this.userRepository.save(user);
     }
 
@@ -50,6 +53,7 @@ public class UserService {
     }
 
     public User fetchUserById(long id) {
+        // tìm user theo id
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
             return user.get();
@@ -77,22 +81,25 @@ public class UserService {
 
     public User handleUpdateUser(User reqUser) {
         User currentUser = this.fetchUserById(reqUser.getId());
+        // tìm user cũ trong DB
         if (currentUser != null) {
+            // update các field cơ bản
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setName(reqUser.getName());
             currentUser.setAge(reqUser.getAge());
             currentUser.setGender(reqUser.getGender());
-            // check company
+            // update company nếu có
             if (reqUser.getCompany() != null) {
                 Optional<Company> comOptional = this.companyService.findById(reqUser.getCompany().getId());
                 currentUser.setCompany(comOptional.isPresent() ? comOptional.get() : null);
             }
 
-            // check role
+            // update role nếu có
             if (reqUser.getRole() != null) {
                 Role role = this.roleService.fetchRoleById(reqUser.getRole().getId());
                 currentUser.setRole(role);
             }
+            // lưu lại DB
             this.userRepository.save(currentUser);
         }
         return currentUser;
@@ -169,6 +176,7 @@ public class UserService {
         return resUserUpdateDTO;
     }
 
+    // lưu refresh token vào DB
     public void updateUserToken(String token, String email) {
         User currentUser = this.handleGetUserByUsername(email);
         if (currentUser != null) {
@@ -177,13 +185,18 @@ public class UserService {
         }
     }
 
+    // check refresh token hợp lệ
     public User getUserByRefreshTokenAndEmail(String token, String email) {
+        // dùng khi refresh token:
+        // check token này có đúng là token của user trong DB không
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
 
+    // logout
     public void handleDeleteRefreshTokenByEmail(String email) {
         User currentUser = this.handleGetUserByUsername(email);
         if (currentUser != null) {
+            // logout -> xóa refresh token trong DB
             currentUser.setRefreshToken(null);
             this.userRepository.save(currentUser);
         }

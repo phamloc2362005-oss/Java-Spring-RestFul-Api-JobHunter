@@ -32,13 +32,13 @@ public class CompanyService {
         Page<Company> pageCompany = this.companyRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-        mt.setPages(pageCompany.getTotalPages());
-        mt.setTotal(pageCompany.getTotalElements());
+        mt.setPage(pageable.getPageNumber() + 1);// page hiện tại
+        mt.setPageSize(pageable.getPageSize()); // số phần tử mỗi page
+        mt.setPages(pageCompany.getTotalPages()); // tổng số page
+        mt.setTotal(pageCompany.getTotalElements());// tổng số ptu
 
         rs.setMeta(mt);
-        rs.setResult(pageCompany.getContent());
+        rs.setResult(pageCompany.getContent());// data thực tế
         return rs;
     }
 

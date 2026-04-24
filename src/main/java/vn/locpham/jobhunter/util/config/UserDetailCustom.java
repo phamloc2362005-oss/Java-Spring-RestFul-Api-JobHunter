@@ -22,8 +22,14 @@ public class UserDetailCustom implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // TODO Auto-generated method stub
+        // Hàm này sẽ được Spring Security tự gọi khi login
+        // username ở đây thực chất là email người dùng nhập vào
         vn.locpham.jobhunter.domain.User user = this.userService.handleGetUserByUsername(username);
+        // Trả về object UserDetails cho Spring Security
+        // gồm:
+        // - email
+        // - password đã hash trong DB
+        // - danh sách quyền
         return new User(user.getEmail(), user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }

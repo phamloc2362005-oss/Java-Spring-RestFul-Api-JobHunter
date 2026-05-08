@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import vn.locpham.jobhunter.util.SecurityUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +19,13 @@ import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 import vn.locpham.jobhunter.domain.User;
+import vn.locpham.jobhunter.domain.reponse.RestResponse;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
+
 import vn.locpham.jobhunter.domain.reponse.user.ResCreateUserDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResUpdateUserDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResUserDTO;
+import vn.locpham.jobhunter.domain.request.UpdateUserProfileForRecommendationDTO;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
@@ -91,4 +95,80 @@ public class UserController {
         }
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(currentUser));
     }
+
+    /**
+     * API lấy user profile hiện tại cho AI recommendation
+     * GET /api/v1/users/profile/recommendation
+     */
+    @GetMapping("/users/profile/recommendation")
+    @ApiMessage("Get user profile for AI recommendations")
+    public ResponseEntity<?> getUserProfileForRecommendation() throws IdInvalidException {
+
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        if (email.isEmpty()) {
+            RestResponse<?> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(401);
+            errorResponse.setError("Unauthorized - Please login");
+            return ResponseEntity.status(401).body(errorResponse);
+        }
+
+        User currentUser = this.userService.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            RestResponse<?> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(401);
+            errorResponse.setError("Unauthorized - Please login");
+            return ResponseEntity.status(401).body(errorResponse);
+        }
+
+        UpdateUserProfileForRecommendationDTO profile = this.userService
+                .getUserProfileForRecommendation(currentUser.getId());
+
+        RestResponse<UpdateUserProfileForRecommendationDTO> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Get user profile successfully");
+        response.setData(profile);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API cập nhật user profile cho AI recommendation
+     * PUT /api/v1/users/profile/recommendation
+     * Cập nhật skills, level, expertise của user
+     */
+    @PutMapping("/users/profile/recommendation")
+    @ApiMessage("Update user profile for AI recommendations")
+    public ResponseEntity<?> updateUserProfileForRecommendation(
+            @RequestBody UpdateUserProfileForRecommendationDTO dto) throws IdInvalidException {
+
+        // Lấy email user từ SecurityUtils và tìm user trong DB
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        if (email.isEmpty()) {
+            RestResponse<?> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(401);
+            errorResponse.setError("Unauthorized - Please login");
+            return ResponseEntity.status(401).body(errorResponse);
+        }
+
+        User currentUser = this.userService.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            RestResponse<?> errorResponse = new RestResponse<>();
+            errorResponse.setStatusCode(401);
+            errorResponse.setError("Unauthorized - Please login");
+            return ResponseEntity.status(401).body(errorResponse);
+        }
+
+        // Gọi service xử lý logic
+        User updatedUser = this.userService.updateUserProfileForRecommendation(currentUser.getId(), dto);
+        if (updatedUser == null) {
+            throw new IdInvalidException("User không tồn tại");
+        }
+
+        RestResponse<ResUpdateUserDTO> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("User profile updated successfully");
+        response.setData(this.userService.convertToResUpdateUserDTO(updatedUser));
+        return ResponseEntity.ok(response);
+    }
+
+    // Using email-based lookup instead of extracting userId from token
 }

@@ -32,6 +32,8 @@ public class Resume {
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
+    private Integer aiScore;
+    private String aiFeedback;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -56,6 +58,8 @@ public class Resume {
         this.updatedBy = updatedBy;
         this.user = user;
         this.job = job;
+        this.aiScore = null;
+        this.aiFeedback = null;
     }
 
     public Long getId() {
@@ -136,6 +140,22 @@ public class Resume {
 
     public void setJob(Job job) {
         this.job = job;
+    }
+
+    public Integer getAiScore() {
+        return aiScore;
+    }
+
+    public void setAiScore(Integer aiScore) {
+        this.aiScore = aiScore;
+    }
+
+    public String getAiFeedback() {
+        return aiFeedback;
+    }
+
+    public void setAiFeedback(String aiFeedback) {
+        this.aiFeedback = aiFeedback;
     }
 
     @PrePersist

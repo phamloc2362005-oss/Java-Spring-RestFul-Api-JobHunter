@@ -41,12 +41,14 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final UserService userService;
     private final JobService jobService;
+    private final AiService aiService;
 
     public ResumeService(ResumeRepository resumeRepository, UserService userService,
-            JobService jobService) {
+            JobService jobService, AiService aiService) {
         this.resumeRepository = resumeRepository;
         this.userService = userService;
         this.jobService = jobService;
+        this.aiService = aiService;
     }
 
     public Resume fetchResumeById(long id) {
@@ -62,6 +64,26 @@ public class ResumeService {
         if (this.userService.fetchUserById(user.getId()) == null || this.jobService.fetchJobById(job.getId()) == null) {
             throw new IdInvalidException("User/Job voi id tai len khong ton tai");
         }
+
+        // Tích hợp AI chấm điểm CV
+        if (resume.getUrl() != null && resume.getUrl().endsWith(".pdf")) {
+            Job dbJob = this.jobService.fetchJobById(job.getId());
+            if (dbJob != null) {
+                String jobDescription = "Title: " + dbJob.getName() + "\nDescription: " + dbJob.getDescription();
+                // Giả định file được lưu trong folder "resume"
+                String pdfText = aiService.extractTextFromPdf(resume.getUrl(), "resume");
+                if (!pdfText.isEmpty()) {
+                    java.util.Map<String, Object> aiResult = aiService.analyzeResume(pdfText, jobDescription);
+                    if (aiResult.containsKey("score")) {
+                        resume.setAiScore((Integer) aiResult.get("score"));
+                    }
+                    if (aiResult.containsKey("feedback")) {
+                        resume.setAiFeedback((String) aiResult.get("feedback"));
+                    }
+                }
+            }
+        }
+
         return this.resumeRepository.save(resume);
     }
 
@@ -104,7 +126,9 @@ public class ResumeService {
                         // map job
                         new ResFetchResumeDTO.JobResume(
                                 item.getJob() != null ? item.getJob().getId() : 0,
-                                item.getJob() != null ? item.getJob().getName() : null)))
+                                item.getJob() != null ? item.getJob().getName() : null),
+                        item.getAiScore(),
+                        item.getAiFeedback()))
                 .collect(Collectors.toList());
 
         rs.setMeta(mt);
@@ -151,6 +175,8 @@ public class ResumeService {
         res.setCreatedBy(resume.getCreatedBy());
         res.setUpdatedAt(resume.getUpdatedAt());
         res.setUpdatedBy(resume.getUpdatedBy());
+        res.setAiScore(resume.getAiScore());
+        res.setAiFeedback(resume.getAiFeedback());
         return res;
     }
 

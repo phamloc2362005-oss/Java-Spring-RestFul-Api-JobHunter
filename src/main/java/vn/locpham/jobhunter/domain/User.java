@@ -9,10 +9,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
@@ -21,6 +24,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import vn.locpham.jobhunter.util.SecurityUtils;
 import vn.locpham.jobhunter.util.constant.GenderEnum;
+import vn.locpham.jobhunter.util.constant.LevelEnum;
 
 @Entity
 @Table(name = "users")
@@ -39,6 +43,10 @@ public class User {
     private GenderEnum gender;
 
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    private LevelEnum level;
+
     @Column(columnDefinition = "MEDIUMTEXT")
     private String refreshToken;
 
@@ -53,6 +61,14 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_skill", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
+    private List<Skill> skills;
+
+    @ManyToOne
+    @JoinColumn(name = "expertise_id")
+    private Expertise expertise;
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -193,6 +209,30 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public LevelEnum getLevel() {
+        return level;
+    }
+
+    public void setLevel(LevelEnum level) {
+        this.level = level;
+    }
+
+    public List<Skill> getSkills() {
+        return skills;
+    }
+
+    public void setSkills(List<Skill> skills) {
+        this.skills = skills;
+    }
+
+    public Expertise getExpertise() {
+        return expertise;
+    }
+
+    public void setExpertise(Expertise expertise) {
+        this.expertise = expertise;
     }
 
 }

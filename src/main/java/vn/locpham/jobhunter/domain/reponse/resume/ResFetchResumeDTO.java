@@ -16,12 +16,14 @@ public class ResFetchResumeDTO {
     private String company;
     private UserResume user;
     private JobResume job;
+    private Integer aiScore;
+    private String aiFeedback;
 
     public ResFetchResumeDTO() {
     }
 
     public ResFetchResumeDTO(Long id, String email, String url, StatusEnum status, Instant createdAt, Instant updatedAt,
-            String createdBy, String updatedBy, UserResume user, JobResume job) {
+            String createdBy, String updatedBy, UserResume user, JobResume job, Integer aiScore, String aiFeedback) {
         this.id = id;
         this.email = email;
         this.url = url;
@@ -32,6 +34,8 @@ public class ResFetchResumeDTO {
         this.updatedBy = updatedBy;
         this.user = user;
         this.job = job;
+        this.aiScore = aiScore;
+        this.aiFeedback = aiFeedback;
     }
 
     public static class UserResume {
@@ -179,6 +183,22 @@ public class ResFetchResumeDTO {
 
     public void setCompany(String company) {
         this.company = company;
+    }
+
+    public Integer getAiScore() {
+        return aiScore;
+    }
+
+    public void setAiScore(Integer aiScore) {
+        this.aiScore = aiScore;
+    }
+
+    public String getAiFeedback() {
+        return aiFeedback;
+    }
+
+    public void setAiFeedback(String aiFeedback) {
+        this.aiFeedback = aiFeedback;
     }
 
 }

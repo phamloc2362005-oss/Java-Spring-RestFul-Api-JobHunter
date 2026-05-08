@@ -11,12 +11,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import vn.locpham.jobhunter.domain.Company;
+import vn.locpham.jobhunter.domain.Expertise;
 import vn.locpham.jobhunter.domain.Role;
+import vn.locpham.jobhunter.domain.Skill;
 import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResCreateUserDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResUpdateUserDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResUserDTO;
+import vn.locpham.jobhunter.domain.request.UpdateUserProfileForRecommendationDTO;
+import vn.locpham.jobhunter.repository.ExpertiseRepository;
+import vn.locpham.jobhunter.repository.SkillRepository;
 import vn.locpham.jobhunter.repository.UserRepository;
 
 @Service
@@ -25,12 +30,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final CompanyService companyService;
     private final RoleService roleService;
+    private final ExpertiseRepository expertiseRepository;
+    private final SkillRepository skillRepository;
 
     public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService,
+            ExpertiseRepository expertiseRepository, SkillRepository skillRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.companyService = companyService;
         this.roleService = roleService;
+        this.expertiseRepository = expertiseRepository;
+        this.skillRepository = skillRepository;
     }
 
     public User handleCreateUser(User user) {
@@ -200,6 +210,54 @@ public class UserService {
             currentUser.setRefreshToken(null);
             this.userRepository.save(currentUser);
         }
+    }
+
+    /**
+     * Cập nhật user profile cho AI recommendation system
+     * Service xử lý logic: fetch expertise, skills từ DB, cập nhật user
+     */
+    public User updateUserProfileForRecommendation(Long userId, UpdateUserProfileForRecommendationDTO dto) {
+        User currentUser = this.fetchUserById(userId);
+        if (currentUser == null) {
+            return null;
+        }
+
+        // Cập nhật level nếu có
+        if (dto.getLevel() != null) {
+            currentUser.setLevel(dto.getLevel());
+        }
+
+        // Cập nhật expertise nếu có
+        if (dto.getExpertiseId() != null && dto.getExpertiseId() > 0) {
+            Optional<Expertise> expertiseOptional = this.expertiseRepository.findById(dto.getExpertiseId());
+            if (expertiseOptional.isPresent()) {
+                currentUser.setExpertise(expertiseOptional.get());
+            }
+        }
+
+        // Cập nhật skills nếu có (có thể là list rỗng)
+        if (dto.getSkillIds() != null && !dto.getSkillIds().isEmpty()) {
+            List<Skill> skills = this.skillRepository.findAllById(dto.getSkillIds());
+            currentUser.setSkills(skills);
+        }
+
+        // Lưu vào DB
+        return this.userRepository.save(currentUser);
+    }
+
+    public UpdateUserProfileForRecommendationDTO getUserProfileForRecommendation(Long userId) {
+        User currentUser = this.fetchUserById(userId);
+        if (currentUser == null) {
+            return null;
+        }
+
+        List<Long> skillIds = currentUser.getSkills() == null
+                ? List.of()
+                : currentUser.getSkills().stream().map(Skill::getId).collect(Collectors.toList());
+
+        Long expertiseId = currentUser.getExpertise() != null ? currentUser.getExpertise().getId() : null;
+
+        return new UpdateUserProfileForRecommendationDTO(skillIds, currentUser.getLevel(), expertiseId);
     }
 
 }

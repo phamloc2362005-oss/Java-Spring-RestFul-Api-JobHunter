@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("com.turkraft.springfilter:jpa:3.1.7")
     implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.apache.pdfbox:pdfbox:3.0.2")
 
     compileOnly("org.projectlombok:lombok:1.18.32")
     annotationProcessor("org.projectlombok:lombok:1.18.32")

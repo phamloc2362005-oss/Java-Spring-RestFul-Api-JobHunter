@@ -59,6 +59,7 @@ public class RecommendationService {
         // Tính điểm cho từng job
         List<JobWithScore> scoredJobs = activeJobs.stream()
                 .map(job -> calculateScore(job, user))
+                .filter(jobWithScore -> jobWithScore.getScore() > 10)
                 .sorted(Comparator.comparing(JobWithScore::getScore).reversed())
                 .limit(limit)
                 .collect(Collectors.toList());
@@ -133,12 +134,11 @@ public class RecommendationService {
     }
 
     /**
-     * Tính điểm cấp độ: user level >= job level được điểm full
-     * - Exact match: 25 điểm
-     * - 1 level cao hơn: 25 điểm (vẫn phù hợp)
-     * - 1 level thấp hơn: 15 điểm (có thể phù hợp nhưng chưa đủ kinh nghiệm)
-     * - 2+ level thấp hơn: 0 điểm
-     * - Null level: 15 điểm (không xác định)
+     * Tính điểm cấp độ: công bằng với cả over-qualified và under-qualified
+     * - Exact match (user level == job level): 25 điểm (phù hợp nhất)
+     * - Adjacent match (|user level - job level| == 1): 15 điểm (chấp nhận được)
+     * - Gap > 1 level (dù cao hay thấp): 0 điểm (không phù hợp)
+     * - Null level: 15 điểm (không xác định, cho cơ hội)
      */
     private double calculateLevelScore(Job job, User user) {
         if (job.getLevel() == null) {
@@ -152,13 +152,16 @@ public class RecommendationService {
         int userLevelValue = getLevelValue(user.getLevel());
         int jobLevelValue = getLevelValue(job.getLevel());
 
-        if (userLevelValue >= jobLevelValue) {
-            return 25; // Đủ kinh nghiệm
-        } else if (userLevelValue == jobLevelValue - 1) {
-            return 15; // Thiếu 1 level
+        // Tính khoảng cách giữa level
+        int levelGap = Math.abs(userLevelValue - jobLevelValue);
+
+        if (levelGap == 0) {
+            return 25; // Exact match (INTERN-INTERN, JUNIOR-JUNIOR, v.v.)
+        } else if (levelGap == 1) {
+            return 15; // Adjacent match (JUNIOR-MIDDLE, MIDDLE-SENIOR, v.v.)
         }
 
-        return 0; // Thiếu quá nhiều kinh nghiệm
+        return 0; // Gap > 1: quá cao hoặc quá thấp
     }
 
     /**

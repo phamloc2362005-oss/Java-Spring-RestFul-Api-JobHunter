@@ -33,6 +33,7 @@ public class Resume {
     private String createdBy;
     private String updatedBy;
     private Integer aiScore;
+    @jakarta.persistence.Column(columnDefinition = "MEDIUMTEXT")
     private String aiFeedback;
 
     @ManyToOne

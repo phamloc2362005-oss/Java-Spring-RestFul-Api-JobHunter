@@ -101,7 +101,9 @@ public class SecurityConfiguration {
                 "/api/v1/password/forgot", "/api/v1/password/otp", "/api/v1/password/reset",
                 "/oauth2/**",
                 "/login/oauth2/**",
-                "/api/v1/recommendations/jobs"
+                "/api/v1/recommendations/jobs",
+                "/api/v1/expertise",
+                "/api/v1/expertise-category"
 
         };
         http

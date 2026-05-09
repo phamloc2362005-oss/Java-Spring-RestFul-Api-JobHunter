@@ -109,16 +109,26 @@ public class ResumeController {
                 : "";
         // lấy user từ DB
         User currentUser = this.userService.handleGetUserByUsername(email);
+        if (currentUser != null && currentUser.getRole() != null) {
+            System.out.println("DEBUG: User " + email + " có Role là: " + currentUser.getRole().getName());
+        }
+
+        // Kiểm tra nếu là ADMIN thì cho phép lấy hết
+        boolean isAdmin = currentUser != null && currentUser.getRole() != null &&
+                (currentUser.getRole().getName().equals("SUPER_ADMIN") || currentUser.getRole().getName().equals("ADMIN"));
+
+        if (isAdmin) {
+            return ResponseEntity.ok().body(this.resumeService.fetchAllResume(spec, pageable));
+        }
+
         if (currentUser != null) {
             Company userCompany = currentUser.getCompany();
             if (userCompany != null) {
                 List<Job> companyJobs = userCompany.getJobs();
-                System.out.println("DEBUG: Số jobs lấy được: " + (companyJobs != null ? companyJobs.size() : 0));
                 if (companyJobs != null && !companyJobs.isEmpty()) {
                     // lấy danh sách jobId của công ty
                     arrJobIds = companyJobs.stream().map(x -> x.getId())
                             .collect(Collectors.toList());
-                    System.out.println("DEBUG: Job IDs: " + arrJobIds);
                 }
             }
         }
@@ -127,8 +137,6 @@ public class ResumeController {
         Specification<Resume> jobInSpec = null;
         if (arrJobIds != null && !arrJobIds.isEmpty()) {
             final List<Long> finalJobIds = arrJobIds;
-            // root : entity, query: để xây dựng câu truy vấn (order by, group by)
-            // cb: criteria builder để tạo các điều kiện (equal, like, in, ... )
             jobInSpec = (root, query, cb) -> root.get("job").get("id").in(finalJobIds);
         } else {
             // Nếu không có job, trả về không có kết quả
@@ -136,7 +144,6 @@ public class ResumeController {
         }
 
         Specification<Resume> finalSpec = jobInSpec.and(spec);
-        System.out.println("DEBUG: Pageable size: " + pageable.getPageSize());
 
         return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));
     }

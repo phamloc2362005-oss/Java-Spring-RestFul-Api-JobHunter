@@ -65,26 +65,16 @@ public class ResumeService {
             throw new IdInvalidException("User/Job voi id tai len khong ton tai");
         }
 
-        // Tích hợp AI chấm điểm CV
-        if (resume.getUrl() != null && resume.getUrl().endsWith(".pdf")) {
-            Job dbJob = this.jobService.fetchJobById(job.getId());
-            if (dbJob != null) {
-                String jobDescription = "Title: " + dbJob.getName() + "\nDescription: " + dbJob.getDescription();
-                // Giả định file được lưu trong folder "resume"
-                String pdfText = aiService.extractTextFromPdf(resume.getUrl(), "resume");
-                if (!pdfText.isEmpty()) {
-                    java.util.Map<String, Object> aiResult = aiService.analyzeResume(pdfText, jobDescription);
-                    if (aiResult.containsKey("score")) {
-                        resume.setAiScore((Integer) aiResult.get("score"));
-                    }
-                    if (aiResult.containsKey("feedback")) {
-                        resume.setAiFeedback((String) aiResult.get("feedback"));
-                    }
-                }
-            }
+        // Lưu resume trước để có thể phản hồi nhanh chóng cho người dùng
+        Resume savedResume = this.resumeRepository.save(resume);
+
+        // Gọi AI chấm điểm ngầm (Async)
+        Job dbJob = this.jobService.fetchJobById(job.getId());
+        if (dbJob != null) {
+            this.aiService.scoreResumeAsync(savedResume, dbJob);
         }
 
-        return this.resumeRepository.save(resume);
+        return savedResume;
     }
 
     public Resume handleUpdateResume(Resume reqResume) {

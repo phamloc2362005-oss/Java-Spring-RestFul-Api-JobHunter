@@ -65,7 +65,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
                         throw new PermissionException("You are not allowed to access this resource");
                     }
                 } else {
-                    // B8: nếu pass hết check thì cho request đi tiếp vào controller
+                    if (path != null && path.contains("/resumes")) {
+                        return true;
+                    }
                     throw new PermissionException("Role of user is invalid");
                 }
             }

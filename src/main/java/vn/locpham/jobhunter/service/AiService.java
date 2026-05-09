@@ -383,24 +383,27 @@ public class AiService {
                 }
 
                 // ==========================================
-                // CÁCH 2: DÙNG THƯ VIỆN PDFBox ĐỂ BÓC CHỮ (Text-to-Text - Đỡ tốn tài nguyên hơn)
+                // CÁCH 2: DÙNG THƯ VIỆN PDFBox ĐỂ BÓC CHỮ (Text-to-Text - Đỡ tốn tài nguyên
+                // hơn)
                 // (Để demo cách 2: Uncomment đoạn code bên dưới, Comment đoạn code cách 1)
                 // ==========================================
                 /*
-                String pdfText = extractTextFromPdf(resume.getUrl(), "resume");
-                if (pdfText != null && !pdfText.isEmpty()) {
-                    java.util.Map<String, Object> aiResult = analyzeResume(pdfText, jobDescription);
-                    if (aiResult.containsKey("score")) {
-                        resume.setAiScore((Integer) aiResult.get("score"));
-                    }
-                    if (aiResult.containsKey("feedback")) {
-                        resume.setAiFeedback((String) aiResult.get("feedback"));
-                    }
-                    System.out.println("DEBUG: Chấm điểm AI (Cách 2 - Bóc chữ) thành công: " + resume.getAiScore());
-                } else {
-                    System.err.println("DEBUG: KHÔNG BÓC TÁCH ĐƯỢC CHỮ TỪ PDF!");
-                }
-                */
+                 * String pdfText = extractTextFromPdf(resume.getUrl(), "resume");
+                 * if (pdfText != null && !pdfText.isEmpty()) {
+                 * java.util.Map<String, Object> aiResult = analyzeResume(pdfText,
+                 * jobDescription);
+                 * if (aiResult.containsKey("score")) {
+                 * resume.setAiScore((Integer) aiResult.get("score"));
+                 * }
+                 * if (aiResult.containsKey("feedback")) {
+                 * resume.setAiFeedback((String) aiResult.get("feedback"));
+                 * }
+                 * System.out.println("DEBUG: Chấm điểm AI (Cách 2 - Bóc chữ) thành công: " +
+                 * resume.getAiScore());
+                 * } else {
+                 * System.err.println("DEBUG: KHÔNG BÓC TÁCH ĐƯỢC CHỮ TỪ PDF!");
+                 * }
+                 */
             }
         } catch (Exception e) {
             System.err.println("DEBUG AI: Lỗi khi xử lý ngầm: " + e.getMessage());
@@ -412,7 +415,8 @@ public class AiService {
     }
 
     /**
-     * AI Resume Builder: Nhận thông tin thô từ ứng viên, trả về nội dung CV đã được chuẩn hóa.
+     * AI Resume Builder: Nhận thông tin thô từ ứng viên, trả về nội dung CV đã được
+     * chuẩn hóa.
      */
     public Map<String, Object> generateCvContent(String rawInput) {
         Map<String, Object> result = new HashMap<>();
@@ -437,29 +441,30 @@ public class AiService {
                 "gemini-flash-latest"
         };
 
-        String prompt = "Bạn là chuyên gia viết CV IT tại TopCV. Hãy viết một bản CV HOÀN CHỈNH, SÚC TÍCH, GỌN GÀNG TRONG 1 TRANG A4 theo đúng cấu trúc chuẩn của mẫu TopCV.\n"
-                + "Dữ liệu khách hàng: " + rawInput + "\n\n"
-                + "YÊU CẦU NGHIÊM NGẶT:\n"
-                + "1. CẤU TRÚC: Trả về JSON đúng 100% schema dưới đây. Bịa ra các thông tin liên hệ (sđt giả, email giả...) nếu khách hàng không cung cấp, để giữ đúng form.\n"
-                + "2. KỸ NĂNG: Tự đánh giá mức độ thành thạo (level từ 10 đến 100) cho từng kỹ năng.\n"
-                + "3. KINH NGHIỆM: Viết cực kỳ cô đọng, dùng động từ mạnh (Xây dựng, Tối ưu) và có số liệu.\n"
-                + "4. CHỈ TRẢ VỀ JSON, KHÔNG CÓ MARKDOWN HAY CHỮ GIẢI THÍCH.\n\n"
-                + "JSON SCHEMA:\n"
+        String prompt = "Bạn là chuyên gia viết CV IT hàng đầu. Nhiệm vụ: Biến thông tin thô của khách hàng thành bản CV CHUYÊN NGHIỆP, ĐẦY ĐẶN, LẤP ĐẦY ĐÚNG 1 TRANG A4.\n"
+                + "Dữ liệu thô từ khách hàng: " + rawInput + "\n\n"
+                + "NGUYÊN TẮC VÀNG:\n"
+                + "1. CV phải DÀI HƠN và CHI TIẾT HƠN thông tin khách hàng cung cấp. Phát triển mỗi ý thành câu dài, chuyên nghiệp.\n"
+                + "2. NẾU THIẾU: Bịa thêm kinh nghiệm, kỹ năng phù hợp ngành nghề.\n"
+                + "3. NHƯNG KHÔNG VƯỢT QUÁ 1 TRANG A4. Tuân thủ số lượng bên dưới.\n"
+                + "4. Mỗi bullet point: 1 câu dài 15-25 từ, có động từ mạnh và số liệu.\n"
+                + "5. CHỈ TRẢ VỀ JSON.\n\n"
+                + "SỐ LƯỢNG CHÍNH XÁC:\n"
+                + "- careerObjective: 2-3 câu (khoảng 40-60 từ).\n"
+                + "- skills: 6-7 kỹ năng.\n"
+                + "- interests: 3 sở thích.\n"
+                + "- education: 1 mục.\n"
+                + "- experiences: 2 công việc, mỗi công việc 3 bullet points.\n\n"
+                + "JSON SCHEMA (viết dài như ví dụ):\n"
                 + "{\n"
                 + "  \"name\": \"Họ và Tên\",\n"
-                + "  \"jobTitle\": \"Vị trí ứng tuyển (vd: LẬP TRÌNH VIÊN JAVA)\",\n"
-                + "  \"personalInfo\": {\n"
-                + "    \"dob\": \"DD/MM/YYYY\",\n"
-                + "    \"gender\": \"Nam/Nữ\",\n"
-                + "    \"phone\": \"09xx xxx xxx\",\n"
-                + "    \"email\": \"email@example.com\",\n"
-                + "    \"address\": \"Địa chỉ hiện tại\"\n"
-                + "  },\n"
-                + "  \"careerObjective\": \"Mục tiêu nghề nghiệp 3-4 dòng cực chất, chuyên nghiệp.\",\n"
-                + "  \"skills\": [ {\"name\": \"Java Spring\", \"level\": 85} ],\n"
-                + "  \"interests\": [\"Đọc sách công nghệ\", \"Code dạo\"],\n"
-                + "  \"education\": [ {\"timeRange\": \"2018 - 2022\", \"major\": \"Kỹ thuật phần mềm\", \"school\": \"ĐH Bách Khoa\", \"desc\": \"Tốt nghiệp loại Giỏi\"} ],\n"
-                + "  \"experiences\": [ {\"timeRange\": \"03/2022 - Hiện tại\", \"title\": \"Java Developer\", \"company\": \"Công ty ABC\", \"bullets\": [\"Làm gì và đạt kết quả gì (dùng số liệu)\"]} ]\n"
+                + "  \"jobTitle\": \"VỊ TRÍ ỨNG TUYỂN\",\n"
+                + "  \"personalInfo\": { \"dob\": \"15/06/1999\", \"gender\": \"Nam\", \"phone\": \"0912 345 678\", \"email\": \"ten@gmail.com\", \"address\": \"Quận 1, TP.HCM\" },\n"
+                + "  \"careerObjective\": \"Với hơn 2 năm kinh nghiệm phát triển ứng dụng web sử dụng Java Spring Boot và ReactJS, tôi mong muốn gia nhập đội ngũ công nghệ năng động để xây dựng sản phẩm phần mềm chất lượng cao và nâng cao năng lực chuyên môn.\",\n"
+                + "  \"skills\": [ {\"name\": \"Java Spring Boot\", \"level\": 85}, {\"name\": \"RESTful API\", \"level\": 90}, {\"name\": \"MySQL\", \"level\": 80}, {\"name\": \"Docker\", \"level\": 70}, {\"name\": \"Git/GitHub\", \"level\": 85}, {\"name\": \"ReactJS\", \"level\": 65} ],\n"
+                + "  \"interests\": [\"Nghiên cứu công nghệ mới\", \"Đọc blog kỹ thuật\", \"Chạy bộ\"],\n"
+                + "  \"education\": [ {\"timeRange\": \"2017 - 2021\", \"major\": \"Kỹ thuật Phần mềm\", \"school\": \"Đại học Bách Khoa TP.HCM\", \"desc\": \"Tốt nghiệp loại Giỏi, GPA 3.2/4.0\"} ],\n"
+                + "  \"experiences\": [ {\"timeRange\": \"03/2022 - Hiện tại\", \"title\": \"Java Backend Developer\", \"company\": \"FPT Software\", \"bullets\": [\"Thiết kế và phát triển hệ thống RESTful API phục vụ hơn 50,000 người dùng sử dụng Java Spring Boot và Hibernate ORM.\", \"Tối ưu hóa hiệu suất truy vấn cơ sở dữ liệu Oracle, giảm 35% thời gian phản hồi API từ 800ms xuống 520ms.\", \"Phối hợp với team Frontend và QA trong quy trình Agile/Scrum, đảm bảo delivery đúng sprint với bug rate dưới 5%.\"]} ]\n"
                 + "}\n";
 
         for (String model : models) {
@@ -482,10 +487,12 @@ public class AiService {
 
                 System.out.println("DEBUG AI CV Builder: Đang thử model: " + model);
                 URI uri = URI.create(url.trim());
-                
+
                 // Ép RestTemplate dùng UTF-8 để không bị lỗi font Tiếng Việt
-                restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
-                
+                restTemplate.getMessageConverters().add(0,
+                        new org.springframework.http.converter.StringHttpMessageConverter(
+                                java.nio.charset.StandardCharsets.UTF_8));
+
                 ResponseEntity<String> response = restTemplate.postForEntity(uri, entity, String.class);
 
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {

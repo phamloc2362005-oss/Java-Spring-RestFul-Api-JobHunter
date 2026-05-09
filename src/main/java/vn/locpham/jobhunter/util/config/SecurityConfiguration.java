@@ -103,7 +103,8 @@ public class SecurityConfiguration {
                 "/login/oauth2/**",
                 "/api/v1/recommendations/jobs",
                 "/api/v1/expertise",
-                "/api/v1/expertise-category"
+                "/api/v1/expertise-category",
+                "/api/v1/ai/**"
 
         };
         http

@@ -410,4 +410,114 @@ public class AiService {
         resumeRepository.save(resume);
         System.out.println("DEBUG: Đã lưu kết quả AI vào database cho Resume ID: " + resume.getId());
     }
+
+    /**
+     * AI Resume Builder: Nhận thông tin thô từ ứng viên, trả về nội dung CV đã được chuẩn hóa.
+     */
+    public Map<String, Object> generateCvContent(String rawInput) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("content", "Không thể tạo nội dung CV.");
+
+        if (rawInput == null || rawInput.trim().isEmpty()) {
+            result.put("content", "Vui lòng nhập thông tin CV.");
+            return result;
+        }
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            result.put("content", "API key chưa được cấu hình.");
+            return result;
+        }
+
+        String[] models = {
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-2.0-flash-exp",
+                "gemini-2.5-flash",
+                "gemini-flash-latest"
+        };
+
+        String prompt = "Bạn là chuyên gia viết CV IT tại TopCV. Hãy viết một bản CV HOÀN CHỈNH, SÚC TÍCH, GỌN GÀNG TRONG 1 TRANG A4 theo đúng cấu trúc chuẩn của mẫu TopCV.\n"
+                + "Dữ liệu khách hàng: " + rawInput + "\n\n"
+                + "YÊU CẦU NGHIÊM NGẶT:\n"
+                + "1. CẤU TRÚC: Trả về JSON đúng 100% schema dưới đây. Bịa ra các thông tin liên hệ (sđt giả, email giả...) nếu khách hàng không cung cấp, để giữ đúng form.\n"
+                + "2. KỸ NĂNG: Tự đánh giá mức độ thành thạo (level từ 10 đến 100) cho từng kỹ năng.\n"
+                + "3. KINH NGHIỆM: Viết cực kỳ cô đọng, dùng động từ mạnh (Xây dựng, Tối ưu) và có số liệu.\n"
+                + "4. CHỈ TRẢ VỀ JSON, KHÔNG CÓ MARKDOWN HAY CHỮ GIẢI THÍCH.\n\n"
+                + "JSON SCHEMA:\n"
+                + "{\n"
+                + "  \"name\": \"Họ và Tên\",\n"
+                + "  \"jobTitle\": \"Vị trí ứng tuyển (vd: LẬP TRÌNH VIÊN JAVA)\",\n"
+                + "  \"personalInfo\": {\n"
+                + "    \"dob\": \"DD/MM/YYYY\",\n"
+                + "    \"gender\": \"Nam/Nữ\",\n"
+                + "    \"phone\": \"09xx xxx xxx\",\n"
+                + "    \"email\": \"email@example.com\",\n"
+                + "    \"address\": \"Địa chỉ hiện tại\"\n"
+                + "  },\n"
+                + "  \"careerObjective\": \"Mục tiêu nghề nghiệp 3-4 dòng cực chất, chuyên nghiệp.\",\n"
+                + "  \"skills\": [ {\"name\": \"Java Spring\", \"level\": 85} ],\n"
+                + "  \"interests\": [\"Đọc sách công nghệ\", \"Code dạo\"],\n"
+                + "  \"education\": [ {\"timeRange\": \"2018 - 2022\", \"major\": \"Kỹ thuật phần mềm\", \"school\": \"ĐH Bách Khoa\", \"desc\": \"Tốt nghiệp loại Giỏi\"} ],\n"
+                + "  \"experiences\": [ {\"timeRange\": \"03/2022 - Hiện tại\", \"title\": \"Java Developer\", \"company\": \"Công ty ABC\", \"bullets\": [\"Làm gì và đạt kết quả gì (dùng số liệu)\"]} ]\n"
+                + "}\n";
+
+        for (String model : models) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                    + model + ":generateContent?key=" + apiKey;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                Map<String, Object> textPart = new HashMap<>();
+                textPart.put("text", prompt);
+
+                Map<String, Object> partObj = new HashMap<>();
+                partObj.put("parts", List.of(textPart));
+
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("contents", List.of(partObj));
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+                System.out.println("DEBUG AI CV Builder: Đang thử model: " + model);
+                URI uri = URI.create(url.trim());
+                
+                // Ép RestTemplate dùng UTF-8 để không bị lỗi font Tiếng Việt
+                restTemplate.getMessageConverters().add(0, new org.springframework.http.converter.StringHttpMessageConverter(java.nio.charset.StandardCharsets.UTF_8));
+                
+                ResponseEntity<String> response = restTemplate.postForEntity(uri, entity, String.class);
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    JsonNode root = objectMapper.readTree(response.getBody());
+                    JsonNode candidates = root.path("candidates");
+                    if (candidates.isArray() && candidates.size() > 0) {
+                        String textResponse = candidates.get(0)
+                                .path("content").path("parts").get(0).path("text").asText();
+
+                        System.out.println("DEBUG RAW AI RESPONSE: " + textResponse);
+
+                        textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                        int jsonStart = textResponse.indexOf("{");
+                        int jsonEnd = textResponse.lastIndexOf("}");
+                        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                            textResponse = textResponse.substring(jsonStart, jsonEnd + 1);
+                        }
+
+                        System.out.println("DEBUG AI CV Builder: ✅ Thành công với model " + model);
+                        result.put("success", true);
+                        result.put("content", textResponse);
+                        return result;
+                    }
+                }
+            } catch (HttpClientErrorException e) {
+                System.err.println("DEBUG AI CV Builder: ❌ Model " + model + " lỗi HTTP: " + e.getStatusCode());
+            } catch (Exception e) {
+                System.err.println("DEBUG AI CV Builder: ❌ Model " + model + " lỗi: " + e.getMessage());
+            }
+        }
+
+        result.put("content", "AI tạm thời không khả dụng. Vui lòng thử lại sau.");
+        return result;
+    }
 }

@@ -27,10 +27,10 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/resumes/**",
                 "/api/v1/users/profile/recommendation",
                 "/api/v1/password/**",
-                "/api/v1/expertise/**",
                 "/api/v1/recommendations/jobs",
                 "/api/v1/expertise/**",
                 "/api/v1/expertise-category/**",
+                "/api/v1/ai/**",
                 "/error"
         };
         // đăng ký PermissionInterceptor cho toàn bộ request

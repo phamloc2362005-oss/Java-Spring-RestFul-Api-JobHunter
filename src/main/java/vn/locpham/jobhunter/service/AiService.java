@@ -91,6 +91,33 @@ public class AiService {
         }
     }
 
+    public String extractBase64FromPdf(String fileName, String folder) {
+        try {
+            if (fileName.contains("/")) {
+                fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            }
+
+            Path basePath;
+            try {
+                basePath = Paths.get(URI.create(baseUri));
+            } catch (Exception ex) {
+                basePath = Paths.get(baseUri.replace("file:///", ""));
+            }
+            Path filePath = basePath.resolve(folder).resolve(fileName);
+            File file = filePath.toFile();
+
+            if (!file.exists() || file.length() == 0) {
+                return null;
+            }
+
+            byte[] fileContent = java.nio.file.Files.readAllBytes(file.toPath());
+            return java.util.Base64.getEncoder().encodeToString(fileContent);
+        } catch (Exception e) {
+            System.err.println("DEBUG PDF: Lỗi khi đọc file sang Base64: " + e.getMessage());
+            return null;
+        }
+    }
+
     public Map<String, Object> analyzeResume(String resumeText, String jobDescription) {
         Map<String, Object> result = new HashMap<>();
         result.put("score", 0);
@@ -216,6 +243,112 @@ public class AiService {
         return result;
     }
 
+    public Map<String, Object> analyzeResumeWithPdf(String base64Pdf, String jobDescription) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("score", 0);
+        result.put("feedback", "Không thể phân tích CV.");
+
+        if (base64Pdf == null || base64Pdf.isEmpty()) {
+            System.err.println("DEBUG AI: PDF Base64 trống. Bỏ qua chấm điểm AI.");
+            return result;
+        }
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            System.err.println("DEBUG AI: API key chưa được cấu hình!");
+            return result;
+        }
+
+        String[] models = {
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
+                "gemini-flash-latest",
+                "gemini-3-flash-preview"
+        };
+
+        String trimmedJob = (jobDescription != null && jobDescription.length() > 3000)
+                ? jobDescription.substring(0, 3000) + "..."
+                : jobDescription;
+
+        String prompt = "Bạn là chuyên gia tuyển dụng HR. Đánh giá mức độ phù hợp của CV với vị trí tuyển dụng.\n"
+                + "Hãy ƯU TIÊN TẬP TRUNG vào kỹ năng cốt lõi và số năm kinh nghiệm để chấm điểm. Bạn vẫn CÓ THỂ NHẬN XÉT về thiết kế, font chữ, bố cục màu sắc của CV nhưng đừng trừ quá nhiều điểm vì thiết kế xấu.\n"
+                + "Hãy chấm điểm một cách khách quan, công tâm và nương tay (ưu tiên điểm cao nếu kỹ năng sát với yêu cầu).\n"
+                + "Mô tả công việc:\n" + trimmedJob + "\n\n"
+                + "Trả về JSON (không markdown, không backtick) với 2 trường:\n"
+                + "- score: số nguyên 0-100\n"
+                + "- feedback: nhận xét 5-6 câu tiếng Việt (bao gồm cả chuyên môn và thiết kế)\n";
+
+        for (String model : models) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                    + model + ":generateContent?key=" + apiKey;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                Map<String, Object> textPart = new HashMap<>();
+                textPart.put("text", prompt);
+
+                Map<String, Object> inlineData = new HashMap<>();
+                inlineData.put("mimeType", "application/pdf");
+                inlineData.put("data", base64Pdf);
+
+                Map<String, Object> inlineDataPart = new HashMap<>();
+                inlineDataPart.put("inlineData", inlineData);
+
+                Map<String, Object> partObj = new HashMap<>();
+                partObj.put("parts", List.of(textPart, inlineDataPart));
+
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("contents", List.of(partObj));
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+                System.out.println("DEBUG AI: Đang thử model: " + model + " với định dạng PDF trực tiếp");
+                URI uri = URI.create(url.trim());
+                ResponseEntity<String> response = restTemplate.postForEntity(uri, entity, String.class);
+                System.out.println("DEBUG AI: Model " + model + " => HTTP " + response.getStatusCode());
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    JsonNode root = objectMapper.readTree(response.getBody());
+                    JsonNode candidates = root.path("candidates");
+                    if (candidates.isArray() && candidates.size() > 0) {
+                        String textResponse = candidates.get(0)
+                                .path("content").path("parts").get(0).path("text").asText();
+
+                        textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                        int jsonStart = textResponse.indexOf("{");
+                        int jsonEnd = textResponse.lastIndexOf("}");
+                        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                            textResponse = textResponse.substring(jsonStart, jsonEnd + 1);
+                        }
+
+                        System.out.println("DEBUG AI: Raw JSON từ Gemini: " + textResponse);
+                        JsonNode resultJson = objectMapper.readTree(textResponse);
+
+                        if (resultJson.has("score")) {
+                            result.put("score", resultJson.get("score").asInt());
+                        }
+                        if (resultJson.has("feedback")) {
+                            result.put("feedback", resultJson.get("feedback").asText());
+                        }
+
+                        System.out.println(
+                                "DEBUG AI: ✅ Thành công với model " + model + " | Score=" + result.get("score"));
+                        return result;
+                    }
+                }
+            } catch (HttpClientErrorException e) {
+                System.err.println("DEBUG AI: ❌ Model " + model + " lỗi HTTP: " + e.getStatusCode() + " - "
+                        + (e.getResponseBodyAsString().length() > 200 ? e.getResponseBodyAsString().substring(0, 200)
+                                : e.getResponseBodyAsString()));
+            } catch (Exception e) {
+                System.err.println("DEBUG AI: ❌ Model " + model + " lỗi: " + e.getMessage());
+            }
+        }
+        System.err.println("DEBUG AI: Tất cả model đều fail.");
+        result.put("feedback", "AI tạm thời không khả dụng (hết quota hoặc lỗi xử lý PDF).");
+        return result;
+    }
+
     @Async
     public void scoreResumeAsync(Resume resume, Job job) {
         System.out.println("DEBUG: Đang chấm điểm AI ngầm cho Resume ID: " + resume.getId());
@@ -231,6 +364,29 @@ public class AiService {
                         + "\nDescription: " + plainDesc
                         + "\nRequirements: " + plainRequired;
 
+                // ==========================================
+                // CÁCH 1: DÙNG GEMINI ĐỌC TRỰC TIẾP FILE PDF BẰNG MẮT (Multimodal - Chuẩn nhất)
+                // (Để demo cách 1: Uncomment đoạn code bên dưới, Comment đoạn code cách 2)
+                // ==========================================
+                String base64Pdf = extractBase64FromPdf(resume.getUrl(), "resume");
+                if (base64Pdf != null && !base64Pdf.isEmpty()) {
+                    java.util.Map<String, Object> aiResult = analyzeResumeWithPdf(base64Pdf, jobDescription);
+                    if (aiResult.containsKey("score")) {
+                        resume.setAiScore((Integer) aiResult.get("score"));
+                    }
+                    if (aiResult.containsKey("feedback")) {
+                        resume.setAiFeedback((String) aiResult.get("feedback"));
+                    }
+                    System.out.println("DEBUG: Chấm điểm AI (Cách 1 - Đọc PDF) thành công: " + resume.getAiScore());
+                } else {
+                    System.err.println("DEBUG: KHÔNG ĐỌC HOẶC MÃ HÓA ĐƯỢC FILE PDF!");
+                }
+
+                // ==========================================
+                // CÁCH 2: DÙNG THƯ VIỆN PDFBox ĐỂ BÓC CHỮ (Text-to-Text - Đỡ tốn tài nguyên hơn)
+                // (Để demo cách 2: Uncomment đoạn code bên dưới, Comment đoạn code cách 1)
+                // ==========================================
+                /*
                 String pdfText = extractTextFromPdf(resume.getUrl(), "resume");
                 if (pdfText != null && !pdfText.isEmpty()) {
                     java.util.Map<String, Object> aiResult = analyzeResume(pdfText, jobDescription);
@@ -240,10 +396,11 @@ public class AiService {
                     if (aiResult.containsKey("feedback")) {
                         resume.setAiFeedback((String) aiResult.get("feedback"));
                     }
-                    System.out.println("DEBUG: Chấm điểm AI thành công: " + resume.getAiScore());
+                    System.out.println("DEBUG: Chấm điểm AI (Cách 2 - Bóc chữ) thành công: " + resume.getAiScore());
                 } else {
-                    System.err.println("DEBUG: KHÔNG ĐỌC ĐƯỢC NỘI DUNG PDF!");
+                    System.err.println("DEBUG: KHÔNG BÓC TÁCH ĐƯỢC CHỮ TỪ PDF!");
                 }
+                */
             }
         } catch (Exception e) {
             System.err.println("DEBUG AI: Lỗi khi xử lý ngầm: " + e.getMessage());

@@ -34,6 +34,9 @@ public class AiService {
     @Value("${locpham.gemini.api.key}")
     private String apiKey;
 
+    @Value("${locpham.groq.api.key}")
+    private String groqApiKey;
+
     @Value("${locpham.upload-file.base-uri}")
     private String baseUri;
 
@@ -522,6 +525,55 @@ public class AiService {
             } catch (Exception e) {
                 System.err.println("DEBUG AI CV Builder: ❌ Model " + model + " lỗi: " + e.getMessage());
             }
+        }
+
+        // ===== FALLBACK: GROQ API (khi Gemini hết quota) =====
+        System.out.println("DEBUG AI CV Builder: ⚡ Gemini hết quota, chuyển sang Groq...");
+        try {
+            String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
+            HttpHeaders groqHeaders = new HttpHeaders();
+            groqHeaders.setContentType(MediaType.APPLICATION_JSON);
+            groqHeaders.set("Authorization", "Bearer " + groqApiKey);
+
+            Map<String, Object> groqMessage = new HashMap<>();
+            groqMessage.put("role", "user");
+            groqMessage.put("content", prompt);
+
+            Map<String, Object> groqBody = new HashMap<>();
+            groqBody.put("model", "llama-3.3-70b-versatile");
+            groqBody.put("messages", List.of(groqMessage));
+            groqBody.put("temperature", 0.7);
+            groqBody.put("max_tokens", 4096);
+
+            restTemplate.getMessageConverters().add(0,
+                    new org.springframework.http.converter.StringHttpMessageConverter(
+                            java.nio.charset.StandardCharsets.UTF_8));
+
+            HttpEntity<Map<String, Object>> groqEntity = new HttpEntity<>(groqBody, groqHeaders);
+            ResponseEntity<String> groqResponse = restTemplate.postForEntity(groqUrl, groqEntity, String.class);
+
+            if (groqResponse.getStatusCode().is2xxSuccessful() && groqResponse.getBody() != null) {
+                JsonNode groqRoot = objectMapper.readTree(groqResponse.getBody());
+                JsonNode choices = groqRoot.path("choices");
+                if (choices.isArray() && choices.size() > 0) {
+                    String textResponse = choices.get(0).path("message").path("content").asText();
+                    System.out.println("DEBUG RAW GROQ RESPONSE: " + textResponse);
+
+                    textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                    int jsonStart = textResponse.indexOf("{");
+                    int jsonEnd = textResponse.lastIndexOf("}");
+                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                        textResponse = textResponse.substring(jsonStart, jsonEnd + 1);
+                    }
+
+                    System.out.println("DEBUG AI CV Builder: ✅ Thành công với Groq!");
+                    result.put("success", true);
+                    result.put("content", textResponse);
+                    return result;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG AI CV Builder: ❌ Groq cũng lỗi: " + e.getMessage());
         }
 
         result.put("content", "AI tạm thời không khả dụng. Vui lòng thử lại sau.");

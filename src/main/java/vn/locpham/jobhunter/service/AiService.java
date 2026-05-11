@@ -579,4 +579,246 @@ public class AiService {
         result.put("content", "AI tạm thời không khả dụng. Vui lòng thử lại sau.");
         return result;
     }
+
+    /**
+     * AI Mock Interview: Sinh 5 câu hỏi phỏng vấn dựa trên thông tin job.
+     * Dùng Groq làm primary (nhanh), Gemini làm fallback.
+     */
+    public Map<String, Object> generateInterviewQuestions(String jobTitle, String jobDescription,
+            String jobLevel, String skills) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("questions", "[]");
+
+        String prompt = "Bạn là chuyên gia tuyển dụng IT cao cấp. Hãy tạo đúng 5 câu hỏi phỏng vấn chuyên sâu cho vị trí sau:\n"
+                + "- Vị trí: " + jobTitle + "\n"
+                + "- Cấp bậc: " + jobLevel + "\n"
+                + "- Kỹ năng yêu cầu: " + skills + "\n"
+                + "- Mô tả công việc: " + (jobDescription != null && jobDescription.length() > 2000
+                        ? jobDescription.substring(0, 2000)
+                        : jobDescription)
+                + "\n\n"
+                + "NGUYÊN TẮC:\n"
+                + "1. Câu hỏi phải THỰC TẾ, sâu sắc, phù hợp với cấp bậc " + jobLevel + ".\n"
+                + "2. Mix giữa câu hỏi kỹ thuật, tình huống thực tế và câu hỏi hành vi (behavioral).\n"
+                + "3. Mỗi câu hỏi phải rõ ràng, không mơ hồ.\n"
+                + "4. CHỈ TRẢ VỀ JSON array, không có markdown, không giải thích thêm.\n\n"
+                + "JSON SCHEMA:\n"
+                + "[{\"id\": 1, \"question\": \"Câu hỏi 1?\", \"type\": \"technical\", \"hint\": \"Gợi ý điểm cần đề cập\"}, ...]\n"
+                + "type có thể là: technical | behavioral | situational";
+
+        // PRIMARY: Groq (nhanh hơn cho text-to-text)
+        try {
+            String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
+            HttpHeaders groqHeaders = new HttpHeaders();
+            groqHeaders.setContentType(MediaType.APPLICATION_JSON);
+            groqHeaders.set("Authorization", "Bearer " + groqApiKey);
+
+            Map<String, Object> groqMessage = new HashMap<>();
+            groqMessage.put("role", "user");
+            groqMessage.put("content", prompt);
+
+            Map<String, Object> groqBody = new HashMap<>();
+            groqBody.put("model", "llama-3.3-70b-versatile");
+            groqBody.put("messages", List.of(groqMessage));
+            groqBody.put("temperature", 0.7);
+            groqBody.put("max_tokens", 2048);
+
+            restTemplate.getMessageConverters().add(0,
+                    new org.springframework.http.converter.StringHttpMessageConverter(
+                            java.nio.charset.StandardCharsets.UTF_8));
+
+            HttpEntity<Map<String, Object>> groqEntity = new HttpEntity<>(groqBody, groqHeaders);
+            ResponseEntity<String> groqResponse = restTemplate.postForEntity(groqUrl, groqEntity, String.class);
+
+            if (groqResponse.getStatusCode().is2xxSuccessful() && groqResponse.getBody() != null) {
+                JsonNode groqRoot = objectMapper.readTree(groqResponse.getBody());
+                JsonNode choices = groqRoot.path("choices");
+                if (choices.isArray() && choices.size() > 0) {
+                    String textResponse = choices.get(0).path("message").path("content").asText();
+                    textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                    int arrStart = textResponse.indexOf("[");
+                    int arrEnd = textResponse.lastIndexOf("]");
+                    if (arrStart >= 0 && arrEnd > arrStart) {
+                        textResponse = textResponse.substring(arrStart, arrEnd + 1);
+                    }
+                    System.out.println("DEBUG Interview Questions: ✅ Groq thành công!");
+                    result.put("success", true);
+                    result.put("questions", textResponse);
+                    return result;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG Interview Questions: ❌ Groq lỗi: " + e.getMessage());
+        }
+
+        // FALLBACK: Gemini
+        String[] models = { "gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest" };
+        for (String model : models) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                    + model + ":generateContent?key=" + apiKey;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                Map<String, Object> textPart = new HashMap<>();
+                textPart.put("text", prompt);
+                Map<String, Object> partObj = new HashMap<>();
+                partObj.put("parts", List.of(textPart));
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("contents", List.of(partObj));
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                URI uri = URI.create(url.trim());
+                ResponseEntity<String> response = restTemplate.postForEntity(uri, entity, String.class);
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    JsonNode root = objectMapper.readTree(response.getBody());
+                    JsonNode candidates = root.path("candidates");
+                    if (candidates.isArray() && candidates.size() > 0) {
+                        String textResponse = candidates.get(0)
+                                .path("content").path("parts").get(0).path("text").asText();
+                        textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                        int arrStart = textResponse.indexOf("[");
+                        int arrEnd = textResponse.lastIndexOf("]");
+                        if (arrStart >= 0 && arrEnd > arrStart) {
+                            textResponse = textResponse.substring(arrStart, arrEnd + 1);
+                        }
+                        System.out.println("DEBUG Interview Questions: ✅ Gemini " + model + " thành công!");
+                        result.put("success", true);
+                        result.put("questions", textResponse);
+                        return result;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG Interview Questions: ❌ Gemini " + model + " lỗi: " + e.getMessage());
+            }
+        }
+
+        result.put("questions", "[]");
+        return result;
+    }
+
+    /**
+     * AI Mock Interview: Chấm điểm + nhận xét câu trả lời phỏng vấn.
+     * Dùng Groq làm primary, Gemini làm fallback.
+     */
+    public Map<String, Object> evaluateInterviewAnswer(String question, String answer, String jobContext) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("score", 0);
+        result.put("feedback", "Không thể đánh giá câu trả lời.");
+        result.put("suggestion", "");
+
+        if (answer == null || answer.trim().length() < 10) {
+            result.put("feedback", "Câu trả lời quá ngắn để đánh giá.");
+            return result;
+        }
+
+        String prompt = "Bạn là HR chuyên nghiệp đang phỏng vấn ứng viên IT. Hãy đánh giá câu trả lời sau.\n"
+                + "Ngữ cảnh công việc: " + jobContext + "\n\n"
+                + "Câu hỏi phỏng vấn: " + question + "\n\n"
+                + "Câu trả lời của ứng viên: " + answer + "\n\n"
+                + "Hãy chấm điểm và nhận xét KHÁCH QUAN, XÂY DỰNG (không quá khắt khe, không quá dễ dãi).\n"
+                + "CHỈ TRẢ VỀ JSON, không markdown, không giải thích:\n"
+                + "{\"score\": <số thực 0.0-10.0>, "
+                + "\"feedback\": \"<nhận xét 2-3 câu tiếng Việt về ưu/nhược điểm>\", "
+                + "\"suggestion\": \"<1-2 câu gợi ý cải thiện>\", "
+                + "\"rating\": \"<Xuất sắc|Tốt|Khá|Cần cải thiện|Chưa đạt>\"}";
+
+        // PRIMARY: Groq
+        try {
+            String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
+            HttpHeaders groqHeaders = new HttpHeaders();
+            groqHeaders.setContentType(MediaType.APPLICATION_JSON);
+            groqHeaders.set("Authorization", "Bearer " + groqApiKey);
+
+            Map<String, Object> groqMessage = new HashMap<>();
+            groqMessage.put("role", "user");
+            groqMessage.put("content", prompt);
+
+            Map<String, Object> groqBody = new HashMap<>();
+            groqBody.put("model", "llama-3.3-70b-versatile");
+            groqBody.put("messages", List.of(groqMessage));
+            groqBody.put("temperature", 0.5);
+            groqBody.put("max_tokens", 512);
+
+            restTemplate.getMessageConverters().add(0,
+                    new org.springframework.http.converter.StringHttpMessageConverter(
+                            java.nio.charset.StandardCharsets.UTF_8));
+
+            HttpEntity<Map<String, Object>> groqEntity = new HttpEntity<>(groqBody, groqHeaders);
+            ResponseEntity<String> groqResponse = restTemplate.postForEntity(groqUrl, groqEntity, String.class);
+
+            if (groqResponse.getStatusCode().is2xxSuccessful() && groqResponse.getBody() != null) {
+                JsonNode groqRoot = objectMapper.readTree(groqResponse.getBody());
+                JsonNode choices = groqRoot.path("choices");
+                if (choices.isArray() && choices.size() > 0) {
+                    String textResponse = choices.get(0).path("message").path("content").asText();
+                    textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                    int jsonStart = textResponse.indexOf("{");
+                    int jsonEnd = textResponse.lastIndexOf("}");
+                    if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                        textResponse = textResponse.substring(jsonStart, jsonEnd + 1);
+                    }
+                    JsonNode evalJson = objectMapper.readTree(textResponse);
+                    result.put("success", true);
+                    result.put("score", evalJson.path("score").asDouble());
+                    result.put("feedback", evalJson.path("feedback").asText());
+                    result.put("suggestion", evalJson.path("suggestion").asText());
+                    result.put("rating", evalJson.path("rating").asText());
+                    System.out.println("DEBUG Interview Evaluate: ✅ Groq thành công! Score="
+                            + evalJson.path("score").asDouble());
+                    return result;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG Interview Evaluate: ❌ Groq lỗi: " + e.getMessage());
+        }
+
+        // FALLBACK: Gemini
+        String[] models = { "gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest" };
+        for (String model : models) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                    + model + ":generateContent?key=" + apiKey;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                Map<String, Object> textPart = new HashMap<>();
+                textPart.put("text", prompt);
+                Map<String, Object> partObj = new HashMap<>();
+                partObj.put("parts", List.of(textPart));
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("contents", List.of(partObj));
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                URI uri = URI.create(url.trim());
+                ResponseEntity<String> response = restTemplate.postForEntity(uri, entity, String.class);
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    JsonNode root = objectMapper.readTree(response.getBody());
+                    JsonNode candidates = root.path("candidates");
+                    if (candidates.isArray() && candidates.size() > 0) {
+                        String textResponse = candidates.get(0)
+                                .path("content").path("parts").get(0).path("text").asText();
+                        textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                        int jsonStart = textResponse.indexOf("{");
+                        int jsonEnd = textResponse.lastIndexOf("}");
+                        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                            textResponse = textResponse.substring(jsonStart, jsonEnd + 1);
+                        }
+                        JsonNode evalJson = objectMapper.readTree(textResponse);
+                        result.put("success", true);
+                        result.put("score", evalJson.path("score").asDouble());
+                        result.put("feedback", evalJson.path("feedback").asText());
+                        result.put("suggestion", evalJson.path("suggestion").asText());
+                        result.put("rating", evalJson.path("rating").asText());
+                        System.out.println(
+                                "DEBUG Interview Evaluate: ✅ Gemini " + model + " thành công!");
+                        return result;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println(
+                        "DEBUG Interview Evaluate: ❌ Gemini " + model + " lỗi: " + e.getMessage());
+            }
+        }
+
+        return result;
+    }
 }

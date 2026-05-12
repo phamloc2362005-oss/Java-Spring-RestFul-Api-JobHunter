@@ -73,7 +73,10 @@ public class AuthController {
                     userCurrentDB.getId(),
                     userCurrentDB.getEmail(),
                     userCurrentDB.getName(),
-                    userCurrentDB.getRole());
+                    userCurrentDB.getRole(),
+                    userCurrentDB.getAge(),
+                    userCurrentDB.getGender() != null ? userCurrentDB.getGender().toString() : null,
+                    userCurrentDB.getAddress());
             res.setUser(userLogin);
         }
         // B6: tạo access token để FE dùng gọi các API protected
@@ -118,6 +121,9 @@ public class AuthController {
             userLogin.setEmail(userCurrentDB.getEmail());
             userLogin.setName(userCurrentDB.getName());
             userLogin.setRole(userCurrentDB.getRole());
+            userLogin.setAge(userCurrentDB.getAge());
+            userLogin.setGender(userCurrentDB.getGender() != null ? userCurrentDB.getGender().toString() : null);
+            userLogin.setAddress(userCurrentDB.getAddress());
 
             userGetAccount.setUser(userLogin);
         }
@@ -155,7 +161,10 @@ public class AuthController {
                     userCurrentDB.getId(),
                     userCurrentDB.getEmail(),
                     userCurrentDB.getName(),
-                    userCurrentDB.getRole());
+                    userCurrentDB.getRole(),
+                    userCurrentDB.getAge(),
+                    userCurrentDB.getGender() != null ? userCurrentDB.getGender().toString() : null,
+                    userCurrentDB.getAddress());
             res.setUser(userLogin);
         }
 

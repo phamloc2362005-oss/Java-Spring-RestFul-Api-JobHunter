@@ -3,14 +3,74 @@ package vn.locpham.jobhunter.domain.request;
 import java.util.List;
 
 import vn.locpham.jobhunter.util.constant.LevelEnum;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO để cập nhật user profile cho AI recommendation
  */
 public class UpdateUserProfileForRecommendationDTO {
-    private List<Long> skillIds; // IDs của skills user có
-    private LevelEnum level; // Level/kinh nghiệm của user (INTERN, JUNIOR, MIDDLE, SENIOR)
-    private Long expertiseId; // ID của expertise/chuyên ngành
+    @JsonProperty("skillIds")
+    private List<Long> skillIds; 
+    
+    @JsonProperty("level")
+    private LevelEnum level; 
+    
+    @JsonProperty("expertiseId")
+    private Long expertiseId; 
+
+    @JsonProperty("skillDetails")
+    public List<SkillInfo> skillDetails;
+
+    @JsonProperty("expertiseDetail")
+    public ExpertiseInfo expertiseDetail;
+
+    public static class SkillInfo {
+        private String label;
+        private String value;
+
+        public SkillInfo(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
+
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
+
+    public static class ExpertiseInfo {
+        @JsonProperty("label")
+        private String label;
+        @JsonProperty("value")
+        private String value;
+
+        public ExpertiseInfo(String label, String value) {
+            this.label = label;
+            this.value = value;
+        }
+
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
+
+    public List<SkillInfo> getSkillDetails() {
+        return skillDetails;
+    }
+
+    public void setSkillDetails(List<SkillInfo> skillDetails) {
+        this.skillDetails = skillDetails;
+    }
+
+    public ExpertiseInfo getExpertiseDetail() {
+        return expertiseDetail;
+    }
+
+    public void setExpertiseDetail(ExpertiseInfo expertiseDetail) {
+        this.expertiseDetail = expertiseDetail;
+    }
 
     public UpdateUserProfileForRecommendationDTO() {
     }

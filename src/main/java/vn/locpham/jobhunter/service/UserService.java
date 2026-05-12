@@ -255,9 +255,24 @@ public class UserService {
                 ? List.of()
                 : currentUser.getSkills().stream().map(Skill::getId).collect(Collectors.toList());
 
-        Long expertiseId = currentUser.getExpertise() != null ? currentUser.getExpertise().getId() : null;
+        List<UpdateUserProfileForRecommendationDTO.SkillInfo> skillDetails = currentUser.getSkills() == null
+                ? List.of()
+                : currentUser.getSkills().stream()
+                        .map(s -> new UpdateUserProfileForRecommendationDTO.SkillInfo(s.getName(),
+                                String.valueOf(s.getId())))
+                        .collect(Collectors.toList());
 
-        return new UpdateUserProfileForRecommendationDTO(skillIds, currentUser.getLevel(), expertiseId);
+        Long expertiseId = currentUser.getExpertise() != null ? currentUser.getExpertise().getId() : null;
+        UpdateUserProfileForRecommendationDTO.ExpertiseInfo expertiseDetail = currentUser.getExpertise() != null
+                ? new UpdateUserProfileForRecommendationDTO.ExpertiseInfo(currentUser.getExpertise().getName(),
+                        String.valueOf(currentUser.getExpertise().getId()))
+                : null;
+
+        UpdateUserProfileForRecommendationDTO dto = new UpdateUserProfileForRecommendationDTO(skillIds,
+                currentUser.getLevel(), expertiseId);
+        dto.setSkillDetails(skillDetails);
+        dto.setExpertiseDetail(expertiseDetail);
+        return dto;
     }
 
 }

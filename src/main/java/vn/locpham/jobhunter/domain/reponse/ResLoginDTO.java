@@ -42,6 +42,33 @@ public class ResLoginDTO {
         private String email;
         private String name;
         private Role role;
+        private int age;
+        private String gender;
+        private String address;
+
+        public int getAge() {
+            return age;
+        }
+
+        public void setAge(int age) {
+            this.age = age;
+        }
+
+        public String getGender() {
+            return gender;
+        }
+
+        public void setGender(String gender) {
+            this.gender = gender;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
 
         public Role getRole() {
             return role;
@@ -51,11 +78,14 @@ public class ResLoginDTO {
             this.role = role;
         }
 
-        public UserLogin(long id, String email, String name, Role role) {
+        public UserLogin(long id, String email, String name, Role role, int age, String gender, String address) {
             this.email = email;
             this.id = id;
             this.name = name;
             this.role = role;
+            this.age = age;
+            this.gender = gender;
+            this.address = address;
         }
 
         public UserLogin() {

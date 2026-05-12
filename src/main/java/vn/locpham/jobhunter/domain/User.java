@@ -66,6 +66,11 @@ public class User {
     @JoinTable(name = "user_skill", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private List<Skill> skills;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_favorite_job", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "job_id"))
+    @JsonIgnore
+    private List<Job> favoriteJobs;
+
     @ManyToOne
     @JoinColumn(name = "expertise_id")
     private Expertise expertise;
@@ -197,6 +202,14 @@ public class User {
 
     public List<Resume> getResumes() {
         return resumes;
+    }
+
+    public List<Job> getFavoriteJobs() {
+        return favoriteJobs;
+    }
+
+    public void setFavoriteJobs(List<Job> favoriteJobs) {
+        this.favoriteJobs = favoriteJobs;
     }
 
     public void setResumes(List<Resume> resumes) {

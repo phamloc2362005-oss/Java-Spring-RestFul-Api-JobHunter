@@ -2,6 +2,7 @@ package vn.locpham.jobhunter.domain.request;
 
 public class ReqCreateReviewDTO {
     private int rating;
+    private boolean isRecommend;
     private String content;
     private String title;
     private String pros;
@@ -14,6 +15,14 @@ public class ReqCreateReviewDTO {
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public boolean isRecommend() {
+        return isRecommend;
+    }
+
+    public void setRecommend(boolean isRecommend) {
+        this.isRecommend = isRecommend;
     }
 
     public String getContent() {

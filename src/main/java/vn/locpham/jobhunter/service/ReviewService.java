@@ -56,6 +56,7 @@ public class ReviewService {
         review.setTitle(req.getTitle());
         review.setPros(req.getPros());
         review.setCons(req.getCons());
+        review.setRecommend(req.isRecommend());
         review.setUser(user);
         review.setCompany(optCompany.get());
 
@@ -88,7 +89,7 @@ public class ReviewService {
         return rs;
     }
 
-    private ResReviewDTO convertToResReviewDTO(Review review) {
+    public ResReviewDTO convertToResReviewDTO(Review review) {
         ResReviewDTO res = new ResReviewDTO();
         res.setId(review.getId());
         res.setRating(review.getRating());
@@ -96,6 +97,7 @@ public class ReviewService {
         res.setTitle(review.getTitle());
         res.setPros(review.getPros());
         res.setCons(review.getCons());
+        res.setRecommend(review.isRecommend());
         res.setCreatedAt(review.getCreatedAt());
 
         if (review.getUser() != null) {

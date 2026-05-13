@@ -23,6 +23,7 @@ public class Review {
     private long id;
 
     private int rating; // 1 to 5
+    private boolean isRecommend;
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String content;
@@ -64,6 +65,14 @@ public class Review {
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public boolean isRecommend() {
+        return isRecommend;
+    }
+
+    public void setRecommend(boolean isRecommend) {
+        this.isRecommend = isRecommend;
     }
 
     public String getContent() {

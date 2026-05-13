@@ -123,12 +123,15 @@ public class RecommendationService {
                     return new JobWithScore(jws.getJob(), aiScore, aiSummary);
                 }
                 return jws;
-            }).sorted(Comparator.comparing(JobWithScore::getScore).reversed())
+            }).filter(jws -> jws.getScore() > 50) // Sau khi AI chấm xong, chỉ lấy Job > 50%
+                    .sorted(Comparator.comparing(JobWithScore::getScore).reversed())
                     .limit(limit)
                     .collect(Collectors.toList());
         } else {
-            // Fallback nếu AI lỗi
-            finalJobs = candidates.stream().limit(limit).collect(Collectors.toList());
+            // Fallback nếu AI lỗi: Lấy hết 20 candidates ban đầu để người dùng không bị trống màn hình
+            finalJobs = candidates.stream()
+                    .limit(limit)
+                    .collect(Collectors.toList());
         }
 
         // 3. Save to Cache

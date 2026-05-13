@@ -246,7 +246,8 @@ public class UserService {
     }
 
     public UpdateUserProfileForRecommendationDTO getUserProfileForRecommendation(Long userId) {
-        User currentUser = this.fetchUserById(userId);
+        // Dùng JOIN FETCH để load skills và expertise trong 1 query, tránh LazyInitializationException
+        User currentUser = this.userRepository.findByIdWithSkillsAndExpertise(userId).orElse(null);
         if (currentUser == null) {
             return null;
         }

@@ -28,6 +28,8 @@ public class UpdateUserProfileForRecommendationDTO {
         private String label;
         private String value;
 
+        public SkillInfo() {}
+
         public SkillInfo(String label, String value) {
             this.label = label;
             this.value = value;
@@ -44,6 +46,8 @@ public class UpdateUserProfileForRecommendationDTO {
         private String label;
         @JsonProperty("value")
         private String value;
+
+        public ExpertiseInfo() {}
 
         public ExpertiseInfo(String label, String value) {
             this.label = label;

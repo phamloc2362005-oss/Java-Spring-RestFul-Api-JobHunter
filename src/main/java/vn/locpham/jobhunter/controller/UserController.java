@@ -102,32 +102,22 @@ public class UserController {
      */
     @GetMapping("/users/profile/recommendation")
     @ApiMessage("Get user profile for AI recommendations")
-    public ResponseEntity<?> getUserProfileForRecommendation() throws IdInvalidException {
+    public ResponseEntity<UpdateUserProfileForRecommendationDTO> getUserProfileForRecommendation() throws IdInvalidException {
 
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         if (email.isEmpty()) {
-            RestResponse<?> errorResponse = new RestResponse<>();
-            errorResponse.setStatusCode(401);
-            errorResponse.setError("Unauthorized - Please login");
-            return ResponseEntity.status(401).body(errorResponse);
+            throw new IdInvalidException("Unauthorized - Please login");
         }
 
         User currentUser = this.userService.handleGetUserByUsername(email);
         if (currentUser == null) {
-            RestResponse<?> errorResponse = new RestResponse<>();
-            errorResponse.setStatusCode(401);
-            errorResponse.setError("Unauthorized - Please login");
-            return ResponseEntity.status(401).body(errorResponse);
+            throw new IdInvalidException("Unauthorized - Please login");
         }
 
         UpdateUserProfileForRecommendationDTO profile = this.userService
                 .getUserProfileForRecommendation(currentUser.getId());
 
-        RestResponse<UpdateUserProfileForRecommendationDTO> response = new RestResponse<>();
-        response.setStatusCode(200);
-        response.setMessage("Get user profile successfully");
-        response.setData(profile);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(profile);
     }
 
     /**
@@ -137,37 +127,25 @@ public class UserController {
      */
     @PutMapping("/users/profile/recommendation")
     @ApiMessage("Update user profile for AI recommendations")
-    public ResponseEntity<?> updateUserProfileForRecommendation(
+    public ResponseEntity<ResUpdateUserDTO> updateUserProfileForRecommendation(
             @RequestBody UpdateUserProfileForRecommendationDTO dto) throws IdInvalidException {
 
-        // Lấy email user từ SecurityUtils và tìm user trong DB
         String email = SecurityUtils.getCurrentUserLogin().orElse("");
         if (email.isEmpty()) {
-            RestResponse<?> errorResponse = new RestResponse<>();
-            errorResponse.setStatusCode(401);
-            errorResponse.setError("Unauthorized - Please login");
-            return ResponseEntity.status(401).body(errorResponse);
+            throw new IdInvalidException("Unauthorized - Please login");
         }
 
         User currentUser = this.userService.handleGetUserByUsername(email);
         if (currentUser == null) {
-            RestResponse<?> errorResponse = new RestResponse<>();
-            errorResponse.setStatusCode(401);
-            errorResponse.setError("Unauthorized - Please login");
-            return ResponseEntity.status(401).body(errorResponse);
+            throw new IdInvalidException("Unauthorized - Please login");
         }
 
-        // Gọi service xử lý logic
         User updatedUser = this.userService.updateUserProfileForRecommendation(currentUser.getId(), dto);
         if (updatedUser == null) {
             throw new IdInvalidException("User không tồn tại");
         }
 
-        RestResponse<ResUpdateUserDTO> response = new RestResponse<>();
-        response.setStatusCode(200);
-        response.setMessage("User profile updated successfully");
-        response.setData(this.userService.convertToResUpdateUserDTO(updatedUser));
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updatedUser));
     }
 
     // Using email-based lookup instead of extracting userId from token

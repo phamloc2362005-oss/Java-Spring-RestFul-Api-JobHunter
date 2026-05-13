@@ -2,6 +2,9 @@ package vn.locpham.jobhunter.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -20,10 +23,30 @@ public class RecommendationService {
 
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final AiService aiService;
 
-    public RecommendationService(JobRepository jobRepository, UserRepository userRepository) {
+    // Cache structure: userId -> CachedResult
+    private static class CachedRecommendation {
+        List<JobWithScore> data;
+        long timestamp;
+
+        CachedRecommendation(List<JobWithScore> data) {
+            this.data = data;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        boolean isExpired(long durationMs) {
+            return System.currentTimeMillis() - timestamp > durationMs;
+        }
+    }
+
+    private final Map<Long, CachedRecommendation> recommendationCache = new ConcurrentHashMap<>();
+    private final long CACHE_DURATION = TimeUnit.MINUTES.toMillis(10); // 10 minutes
+
+    public RecommendationService(JobRepository jobRepository, UserRepository userRepository, AiService aiService) {
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
+        this.aiService = aiService;
     }
 
     /**
@@ -44,6 +67,15 @@ public class RecommendationService {
             return response;
         }
 
+        // 0. Check Cache
+        CachedRecommendation cached = recommendationCache.get(userId);
+        if (cached != null && !cached.isExpired(CACHE_DURATION)) {
+            System.out.println("DEBUG AI: 🚀 Trả về kết quả từ Cache cho User ID: " + userId);
+            response.setStatusCode(200);
+            response.setData(cached.data);
+            return response;
+        }
+
         List<Job> allJobs = this.jobRepository.findAll();
         if (allJobs == null || allJobs.isEmpty()) {
             response.setStatusCode(404);
@@ -51,22 +83,70 @@ public class RecommendationService {
             return response;
         }
 
-        // Lọc chỉ lấy job active
-        List<Job> activeJobs = allJobs.stream()
+        // 1. Lọc thô bằng thuật toán cũ (Prefilter)
+        List<JobWithScore> candidates = allJobs.stream()
                 .filter(Job::isActive)
+                .map(job -> calculateScore(job, user))
+                .filter(jws -> jws.getScore() > 10)
+                .sorted(Comparator.comparing(JobWithScore::getScore).reversed())
+                .limit(20) // Lấy top 20 để AI phân tích
                 .collect(Collectors.toList());
 
-        // Tính điểm cho từng job
-        List<JobWithScore> scoredJobs = activeJobs.stream()
-                .map(job -> calculateScore(job, user))
-                .filter(jobWithScore -> jobWithScore.getScore() > 10)
-                .sorted(Comparator.comparing(JobWithScore::getScore).reversed())
-                .limit(limit)
-                .collect(Collectors.toList());
+        if (candidates.isEmpty()) {
+            response.setStatusCode(200);
+            response.setData(new java.util.ArrayList<>());
+            return response;
+        }
+
+        // 2. Re-rank bằng AI
+        List<Job> candidateJobs = candidates.stream().map(JobWithScore::getJob).collect(Collectors.toList());
+        List<Map<String, Object>> aiRankings = this.aiService.rankJobsWithAi(user, candidateJobs);
+
+        List<JobWithScore> finalJobs;
+        if (aiRankings != null && !aiRankings.isEmpty()) {
+            // Mapping kết quả AI vào JobWithScore
+            finalJobs = candidates.stream().map(jws -> {
+                Map<String, Object> aiRes = aiRankings.stream()
+                        .filter(res -> {
+                            Object jobIdObj = res.get("jobId");
+                            if (jobIdObj instanceof Number) {
+                                return ((Number) jobIdObj).longValue() == jws.getJob().getId();
+                            }
+                            return false;
+                        })
+                        .findFirst()
+                        .orElse(null);
+
+                if (aiRes != null) {
+                    int aiScore = ((Number) aiRes.get("score")).intValue();
+                    String aiSummary = (String) aiRes.get("summary");
+                    return new JobWithScore(jws.getJob(), aiScore, aiSummary);
+                }
+                return jws;
+            }).sorted(Comparator.comparing(JobWithScore::getScore).reversed())
+                    .limit(limit)
+                    .collect(Collectors.toList());
+        } else {
+            // Fallback nếu AI lỗi
+            finalJobs = candidates.stream().limit(limit).collect(Collectors.toList());
+        }
+
+        // 3. Save to Cache
+        if (finalJobs != null && !finalJobs.isEmpty()) {
+            recommendationCache.put(userId, new CachedRecommendation(finalJobs));
+        }
 
         response.setStatusCode(200);
-        response.setData(scoredJobs);
+        response.setData(finalJobs);
         return response;
+    }
+
+    /**
+     * Clear cache for a specific user (call this when user updates profile)
+     */
+    public void clearCache(Long userId) {
+        recommendationCache.remove(userId);
+        System.out.println("DEBUG AI: 🧹 Đã xóa cache gợi ý cho User ID: " + userId);
     }
 
     /**

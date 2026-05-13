@@ -26,6 +26,7 @@ import vn.locpham.jobhunter.domain.reponse.user.ResCreateUserDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResUpdateUserDTO;
 import vn.locpham.jobhunter.domain.reponse.user.ResUserDTO;
 import vn.locpham.jobhunter.domain.request.UpdateUserProfileForRecommendationDTO;
+import vn.locpham.jobhunter.service.RecommendationService;
 import vn.locpham.jobhunter.service.UserService;
 import vn.locpham.jobhunter.util.annotattion.ApiMessage;
 import vn.locpham.jobhunter.util.error.IdInvalidException;
@@ -36,10 +37,13 @@ public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final RecommendationService recommendationService;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder,
+            RecommendationService recommendationService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.recommendationService = recommendationService;
     }
 
     @PostMapping("/users")
@@ -93,6 +97,8 @@ public class UserController {
         if (currentUser == null) {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }
+        // Clear recommendation cache
+        this.recommendationService.clearCache(currentUser.getId());
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(currentUser));
     }
 
@@ -144,6 +150,9 @@ public class UserController {
         if (updatedUser == null) {
             throw new IdInvalidException("User không tồn tại");
         }
+
+        // Clear recommendation cache so AI recalculates with new profile
+        this.recommendationService.clearCache(updatedUser.getId());
 
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updatedUser));
     }

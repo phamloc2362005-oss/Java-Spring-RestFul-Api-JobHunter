@@ -1,5 +1,9 @@
 package vn.locpham.jobhunter.service;
 
+import java.util.stream.Collectors;
+import vn.locpham.jobhunter.domain.User;
+import vn.locpham.jobhunter.domain.Skill;
+
 import java.io.File;
 import java.net.URI;
 import java.nio.file.Path;
@@ -820,5 +824,97 @@ public class AiService {
         }
 
         return result;
+    }
+
+    /**
+     * AI Recommendation: Re-rank jobs based on user profile and provide summaries.
+     */
+    public List<Map<String, Object>> rankJobsWithAi(User user, List<Job> candidates) {
+        if (candidates == null || candidates.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            System.err.println("DEBUG AI: API key chưa được cấu hình!");
+            return null;
+        }
+
+        // Convert User profile to text
+        StringBuilder userProfile = new StringBuilder();
+        userProfile.append("Name: ").append(user.getName()).append("\n");
+        userProfile.append("Level: ").append(user.getLevel()).append("\n");
+        userProfile.append("Expertise: ").append(user.getExpertise() != null ? user.getExpertise().getName() : "N/A")
+                .append("\n");
+        userProfile.append("Skills: ")
+                .append(user.getSkills().stream().map(Skill::getName).collect(Collectors.joining(", ")))
+                .append("\n");
+        userProfile.append("Address: ").append(user.getAddress()).append("\n");
+
+        // Convert Jobs to text
+        StringBuilder jobsList = new StringBuilder();
+        for (int i = 0; i < candidates.size(); i++) {
+            Job job = candidates.get(i);
+            jobsList.append("Job ID: ").append(job.getId()).append("\n");
+            jobsList.append("Title: ").append(job.getName()).append("\n");
+            jobsList.append("Description: ")
+                    .append(job.getDescription() != null ? job.getDescription().replaceAll("<[^>]*>", " ") : "")
+                    .append("\n");
+            jobsList.append("Required: ")
+                    .append(job.getRequired() != null ? job.getRequired().replaceAll("<[^>]*>", " ") : "")
+                    .append("\n");
+            jobsList.append("---\n");
+        }
+
+        String prompt = "Bạn là chuyên gia tư vấn nghề nghiệp. Dựa trên thông tin ứng viên sau đây:\n"
+                + userProfile.toString() + "\n"
+                + "Hãy đánh giá mức độ phù hợp với danh sách công việc bên dưới:\n"
+                + jobsList.toString() + "\n"
+                + "YÊU CẦU:\n"
+                + "1. Trả về một mảng JSON các object.\n"
+                + "2. Mỗi object gồm: jobId (số), score (số thực 0-100), summary (1 câu tiếng Việt ngắn gọn giải thích tại sao phù hợp, ví dụ: 'Phù hợp với kỹ năng Java và kinh nghiệm 2 năm của bạn').\n"
+                + "3. Chỉ trả về JSON array, không markdown, không giải thích thêm.\n"
+                + "CHÚ Ý: Hãy chấm điểm khách quan dựa trên sự tương đồng về kỹ năng và cấp bậc.";
+
+        String[] models = { "gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest" };
+
+        for (String model : models) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                    + model + ":generateContent?key=" + apiKey;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                Map<String, Object> textPart = new HashMap<>();
+                textPart.put("text", prompt);
+                Map<String, Object> partObj = new HashMap<>();
+                partObj.put("parts", List.of(textPart));
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("contents", List.of(partObj));
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                ResponseEntity<String> response = restTemplate.postForEntity(URI.create(url), entity, String.class);
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    JsonNode root = objectMapper.readTree(response.getBody());
+                    String textResponse = root.path("candidates").get(0).path("content").path("parts").get(0).path("text")
+                            .asText();
+
+                    textResponse = textResponse.replace("```json", "").replace("```", "").trim();
+                    int arrStart = textResponse.indexOf("[");
+                    int arrEnd = textResponse.lastIndexOf("]");
+                    if (arrStart >= 0 && arrEnd > arrStart) {
+                        textResponse = textResponse.substring(arrStart, arrEnd + 1);
+                    }
+
+                    List<Map<String, Object>> resultList = objectMapper.readValue(textResponse,
+                            new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>() {
+                            });
+                    System.out.println("DEBUG AI Recommendation: ✅ Thành công với model " + model);
+                    return resultList;
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG AI Recommendation: ❌ Model " + model + " lỗi: " + e.getMessage());
+            }
+        }
+        return null;
     }
 }

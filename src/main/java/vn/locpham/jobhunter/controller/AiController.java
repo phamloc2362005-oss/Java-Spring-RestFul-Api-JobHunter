@@ -23,7 +23,8 @@ public class AiController {
 
     /**
      * POST /api/v1/ai/generate-cv
-     * Body: { "rawInput": "Tên: Nguyễn Văn A. Làm dev java 3 năm tại công ty ABC..." }
+     * Body: { "rawInput": "Tên: Nguyễn Văn A. Làm dev java 3 năm tại công ty
+     * ABC..." }
      * Trả về JSON nội dung CV đã được AI chuẩn hóa.
      */
     @PostMapping("/generate-cv")
@@ -66,10 +67,11 @@ public class AiController {
 
     /**
      * POST /api/v1/ai/interview/questions
-     * Body: { "jobTitle": "...", "jobDescription": "...", "jobLevel": "...", "skills": "..." }
+     * Body: { "jobTitle": "...", "jobDescription": "...", "jobLevel": "...",
+     * "skills": "..." }
      * Trả về JSON array 5 câu hỏi phỏng vấn.
      */
-    @PostMapping("/interview/questions")
+    @PostMapping(value = "/interview/questions", produces = "application/json;charset=UTF-8")
     public ResponseEntity<RestResponse<Object>> generateInterviewQuestions(
             @RequestBody Map<String, String> body) {
         String jobTitle = body.getOrDefault("jobTitle", "");
@@ -98,13 +100,15 @@ public class AiController {
                 response.setData(parsed);
                 response.setMessage("Tạo câu hỏi phỏng vấn thành công!");
             } catch (Exception e) {
+                System.err.println("DEBUG ERROR PARSING QUESTIONS: " + e.getMessage());
+                // Trả về raw string để FE tự parse
                 response.setData(aiResult.get("questions"));
                 response.setMessage("Tạo câu hỏi phỏng vấn thành công (raw)!");
             }
         } else {
-            response.setStatusCode(500);
-            response.setError("AI không thể tạo câu hỏi. Vui lòng thử lại.");
-            return ResponseEntity.internalServerError().body(response);
+            response.setStatusCode(503);
+            response.setError("AI không thể tạo câu hỏi lúc này. Hết quota hoặc API lỗi. Vui lòng thử lại.");
+            return ResponseEntity.status(503).body(response);
         }
 
         return ResponseEntity.ok(response);
@@ -115,7 +119,7 @@ public class AiController {
      * Body: { "question": "...", "answer": "...", "jobContext": "..." }
      * Trả về JSON { score, feedback, suggestion, rating }.
      */
-    @PostMapping("/interview/evaluate")
+    @PostMapping(value = "/interview/evaluate", produces = "application/json;charset=UTF-8")
     public ResponseEntity<RestResponse<Object>> evaluateInterviewAnswer(
             @RequestBody Map<String, String> body) {
         String question = body.getOrDefault("question", "");
@@ -131,10 +135,24 @@ public class AiController {
 
         Map<String, Object> aiResult = this.aiService.evaluateInterviewAnswer(question, answer, jobContext);
 
+        boolean success = Boolean.TRUE.equals(aiResult.get("success"));
         RestResponse<Object> response = new RestResponse<>();
         response.setStatusCode(200);
-        response.setData(aiResult);
-        response.setMessage("Đánh giá câu trả lời thành công!");
+
+        if (success) {
+            // Chỉ trả về các field cần thiết, bỏ qua field 'success'
+            java.util.Map<String, Object> cleanData = new java.util.HashMap<>();
+            cleanData.put("score", aiResult.get("score"));
+            cleanData.put("feedback", aiResult.get("feedback"));
+            cleanData.put("suggestion", aiResult.get("suggestion"));
+            cleanData.put("rating", aiResult.get("rating"));
+            response.setData(cleanData);
+            response.setMessage("Đánh giá câu trả lời thành công!");
+        } else {
+            response.setStatusCode(503);
+            response.setError("AI không thể đánh giá câu trả lời lúc này. Vui lòng thử lại.");
+            return ResponseEntity.status(503).body(response);
+        }
 
         return ResponseEntity.ok(response);
     }

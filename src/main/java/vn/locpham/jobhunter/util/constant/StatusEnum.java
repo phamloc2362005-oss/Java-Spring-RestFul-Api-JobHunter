@@ -1,5 +1,5 @@
 package vn.locpham.jobhunter.util.constant;
 
 public enum StatusEnum {
-    PENDING, REVIEWING, PPROVED, REJECTED;
+    PENDING, REVIEWING, APPROVED, REJECTED;
 }

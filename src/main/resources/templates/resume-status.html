@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Status Update — JobHunter</title>
+</head>
+
+<body style="margin:0; padding:0; background:#f5f5f5; font-family:'Segoe UI', Arial, sans-serif;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0"
+                    style="background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+                    <!-- ===== HEADER ===== -->
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#b91c1c 0%,#7f1d1d 100%); padding:32px 40px;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <span
+                                            style="font-size:22px; font-weight:800; color:#fff; letter-spacing:-0.5px;">🔍
+                                            JobHunter</span>
+                                    </td>
+                                    <td align="right">
+                                        <span style="font-size:13px; color:rgba(255,255,255,0.75);">Application
+                                            Notification</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ===== STATUS BADGE SECTION ===== -->
+                    <tr>
+                        <td style="padding:36px 40px 24px;">
+
+                            <!-- Greeting -->
+                            <p style="font-size:16px; color:#374151; margin:0 0 24px;">
+                                Hi <strong th:text="${candidateName}">Candidate</strong>,
+                            </p>
+
+                            <!-- Status Badge -->
+                            <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                                <tr>
+                                    <!-- APPROVED -->
+                                    <td th:if="${status == 'APPROVED'}"
+                                        style="background:#dcfce7; border:1.5px solid #16a34a; border-radius:999px; padding:8px 20px;">
+                                        <span style="color:#15803d; font-size:15px; font-weight:700;">✅ Congratulations!
+                                            Your application has been <strong>APPROVED</strong></span>
+                                    </td>
+                                    <!-- REVIEWING -->
+                                    <td th:if="${status == 'REVIEWING'}"
+                                        style="background:#fef9c3; border:1.5px solid #ca8a04; border-radius:999px; padding:8px 20px;">
+                                        <span style="color:#92400e; font-size:15px; font-weight:700;">🔍 Your
+                                            application is currently being <strong>REVIEWED</strong></span>
+                                    </td>
+                                    <!-- REJECTED -->
+                                    <td th:if="${status == 'REJECTED'}"
+                                        style="background:#fee2e2; border:1.5px solid #dc2626; border-radius:999px; padding:8px 20px;">
+                                        <span style="color:#991b1b; font-size:15px; font-weight:700;">❌ Unfortunately,
+                                            your application was <strong>NOT SELECTED</strong></span>
+                                    </td>
+                                    <!-- PENDING fallback -->
+                                    <td th:if="${status == 'PENDING'}"
+                                        style="background:#f3f4f6; border:1.5px solid #9ca3af; border-radius:999px; padding:8px 20px;">
+                                        <span style="color:#374151; font-size:15px; font-weight:700;">⏳ Your application
+                                            is <strong>PENDING</strong> review</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Message per status -->
+                            <p th:if="${status == 'APPROVED'}"
+                                style="font-size:15px; color:#374151; line-height:1.7; margin:0 0 24px;">
+                                Great news! The recruiter has approved your resume. They may contact you soon
+                                to schedule an interview. Make sure your phone and email are active.
+                            </p>
+                            <p th:if="${status == 'REVIEWING'}"
+                                style="font-size:15px; color:#374151; line-height:1.7; margin:0 0 24px;">
+                                Your application has caught the recruiter's attention and is now being reviewed.
+                                Please be patient — we'll update you as soon as there's a decision.
+                            </p>
+                            <p th:if="${status == 'REJECTED'}"
+                                style="font-size:15px; color:#374151; line-height:1.7; margin:0 0 24px;">
+                                Thank you for your interest. After careful consideration, the recruiter has decided
+                                not to move forward with your application at this time. Don't be discouraged —
+                                keep applying to other positions that match your skills!
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- ===== JOB DETAIL CARD ===== -->
+                    <tr>
+                        <td style="padding:0 40px 32px;">
+                            <table width="100%" cellpadding="0" cellspacing="0"
+                                style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+
+                                <!-- Card Header -->
+                                <tr>
+                                    <td style="background:#f3f4f6; padding:14px 20px; border-bottom:1px solid #e5e7eb;">
+                                        <span
+                                            style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px;">
+                                            📄 Your Application Details
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- Job Name -->
+                                <tr>
+                                    <td style="padding:16px 20px 8px;">
+                                        <span
+                                            style="font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase;">Position</span><br />
+                                        <span th:text="${jobName}"
+                                            style="font-size:17px; font-weight:700; color:#111827;">Software
+                                            Engineer</span>
+                                    </td>
+                                </tr>
+
+                                <!-- Company -->
+                                <tr>
+                                    <td style="padding:8px 20px;">
+                                        <span
+                                            style="font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase;">Company</span><br />
+                                        <span th:text="${companyName}"
+                                            style="font-size:15px; color:#374151; font-weight:600;">Acme Corp</span>
+                                    </td>
+                                </tr>
+
+                                <!-- Location -->
+                                <tr th:if="${jobLocation}">
+                                    <td style="padding:8px 20px;">
+                                        <span
+                                            style="font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase;">Location</span><br />
+                                        <span th:text="${jobLocation}" style="font-size:15px; color:#374151;">Ha Noi,
+                                            Vietnam</span>
+                                    </td>
+                                </tr>
+
+                                <!-- Salary -->
+                                <tr th:if="${salary}">
+                                    <td style="padding:8px 20px;">
+                                        <span
+                                            style="font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase;">Salary</span><br />
+                                        <span th:text="${salary}"
+                                            style="font-size:15px; color:#374151; font-weight:600;">Negotiable</span>
+                                    </td>
+                                </tr>
+
+                                <!-- AI Score -->
+                                <tr th:if="${aiScore != null}">
+                                    <td style="padding:8px 20px 16px;">
+                                        <span
+                                            style="font-size:11px; color:#9ca3af; font-weight:600; text-transform:uppercase;">AI
+                                            Match Score</span><br />
+                                        <span style="font-size:15px; font-weight:700;"
+                                            th:style="${aiScore >= 70} ? 'color:#16a34a;font-size:15px;font-weight:700;' : (${aiScore >= 50} ? 'color:#d97706;font-size:15px;font-weight:700;' : 'color:#dc2626;font-size:15px;font-weight:700;')"
+                                            th:text="${aiScore + '%'}">85%</span>
+                                        <span style="font-size:13px; color:#9ca3af; margin-left:6px;">match with job
+                                            requirements</span>
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ===== CTA BUTTON ===== -->
+                    <tr>
+                        <td style="padding:0 40px 36px;" align="center">
+                            <a href="http://localhost:4173/job" th:href="${appUrl}"
+                                style="display:inline-block; background:linear-gradient(135deg,#b91c1c,#7f1d1d); color:#fff; text-decoration:none; font-size:15px; font-weight:700; padding:14px 36px; border-radius:8px; letter-spacing:0.2px;">
+                                🔍 Browse More Jobs
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- ===== DIVIDER ===== -->
+                    <tr>
+                        <td style="padding:0 40px;">
+                            <div style="height:1px; background:#e5e7eb;"></div>
+                        </td>
+                    </tr>
+
+                    <!-- ===== FOOTER ===== -->
+                    <tr>
+                        <td style="padding:24px 40px;" align="center">
+                            <p style="font-size:13px; color:#9ca3af; margin:0 0 6px;">
+                                This is an automated notification from <strong
+                                    style="color:#b91c1c;">JobHunter</strong>.
+                            </p>
+                            <p style="font-size:12px; color:#d1d5db; margin:0;">
+                                © 2025 JobHunter Platform · All rights reserved
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

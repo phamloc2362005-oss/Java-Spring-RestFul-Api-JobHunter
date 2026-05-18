@@ -1,7 +1,9 @@
 package vn.locpham.jobhunter.service;
 
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
@@ -16,6 +18,7 @@ import org.thymeleaf.context.Context;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import vn.locpham.jobhunter.domain.Job;
+import vn.locpham.jobhunter.domain.Resume;
 import vn.locpham.jobhunter.repository.JobRepository;
 
 @Service
@@ -76,6 +79,56 @@ public class EmailService {
         context.setVariable("otp", otp);
         String content = this.templateEngine.process(templateName, context);
         this.sendEmailSync(to, subject, content, false, true);
+    }
+
+    // ================================================================
+    // mail thông báo status resume cho ứng viên
+    // ================================================================
+    @Async
+    public void sendResumeStatusEmail(Resume resume) {
+        if (resume == null || resume.getEmail() == null)
+            return;
+
+        String status = resume.getStatus() != null ? resume.getStatus().name() : "PENDING";
+
+        // Subject động theo status
+        String subject;
+        switch (status) {
+            case "APPROVED" -> subject = "✅ [JobHunter] Your application has been Approved!";
+            case "REVIEWING" -> subject = "🔍 [JobHunter] Your application is Under Review";
+            case "REJECTED" -> subject = "❌ [JobHunter] Application Status Update";
+            default -> subject = "📋 [JobHunter] Application Status Update";
+        }
+
+        // Build Thymeleaf context
+        Context ctx = new Context();
+        ctx.setVariable("candidateName",
+                resume.getUser() != null && resume.getUser().getName() != null
+                        ? resume.getUser().getName()
+                        : "Candidate");
+        ctx.setVariable("status", status);
+        ctx.setVariable("jobName",
+                resume.getJob() != null ? resume.getJob().getName() : "N/A");
+        ctx.setVariable("companyName",
+                resume.getJob() != null && resume.getJob().getCompany() != null
+                        ? resume.getJob().getCompany().getName()
+                        : "N/A");
+        ctx.setVariable("jobLocation",
+                resume.getJob() != null ? resume.getJob().getLocation() : null);
+
+        // Format salary
+        if (resume.getJob() != null && resume.getJob().getSalary() > 0) {
+            NumberFormat fmt = NumberFormat.getNumberInstance(Locale.US);
+            ctx.setVariable("salary", fmt.format(resume.getJob().getSalary()) + " VND");
+        } else {
+            ctx.setVariable("salary", null);
+        }
+
+        ctx.setVariable("aiScore", resume.getAiScore());
+        ctx.setVariable("appUrl", "http://localhost:5173/job");
+
+        String content = this.templateEngine.process("resume-status", ctx);
+        this.sendEmailSync(resume.getEmail(), subject, content, false, true);
     }
 
 }

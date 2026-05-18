@@ -115,7 +115,8 @@ public class ResumeController {
 
         // Kiểm tra nếu là ADMIN thì cho phép lấy hết
         boolean isAdmin = currentUser != null && currentUser.getRole() != null &&
-                (currentUser.getRole().getName().equals("SUPER_ADMIN") || currentUser.getRole().getName().equals("ADMIN"));
+                (currentUser.getRole().getName().equals("SUPER_ADMIN")
+                        || currentUser.getRole().getName().equals("ADMIN"));
 
         if (isAdmin) {
             return ResponseEntity.ok().body(this.resumeService.fetchAllResume(spec, pageable));

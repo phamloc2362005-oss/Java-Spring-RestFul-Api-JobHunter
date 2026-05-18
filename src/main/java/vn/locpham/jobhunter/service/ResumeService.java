@@ -42,13 +42,15 @@ public class ResumeService {
     private final UserService userService;
     private final JobService jobService;
     private final AiService aiService;
+    private final EmailService emailService;
 
     public ResumeService(ResumeRepository resumeRepository, UserService userService,
-            JobService jobService, AiService aiService) {
+            JobService jobService, AiService aiService, EmailService emailService) {
         this.resumeRepository = resumeRepository;
         this.userService = userService;
         this.jobService = jobService;
         this.aiService = aiService;
+        this.emailService = emailService;
     }
 
     public Resume fetchResumeById(long id) {
@@ -82,7 +84,12 @@ public class ResumeService {
         if (resume != null) {
             resume.setStatus(reqResume.getStatus());
         }
-        return this.resumeRepository.save(resume);
+        Resume saved = this.resumeRepository.save(resume);
+
+        // Gửi email thông báo status cho ứng viên (Async - không block)
+        this.emailService.sendResumeStatusEmail(saved);
+
+        return saved;
     }
 
     public void handleDeleteResume(long id) {

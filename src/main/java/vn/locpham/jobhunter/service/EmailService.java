@@ -94,10 +94,10 @@ public class EmailService {
         // Subject động theo status
         String subject;
         switch (status) {
-            case "APPROVED" -> subject = "✅ [JobHunter] Your application has been Approved!";
-            case "REVIEWING" -> subject = "🔍 [JobHunter] Your application is Under Review";
-            case "REJECTED" -> subject = "❌ [JobHunter] Application Status Update";
-            default -> subject = "📋 [JobHunter] Application Status Update";
+            case "APPROVED" -> subject = "[JobHunter] Your application has been Approved!";
+            case "REVIEWING" -> subject = "[JobHunter] Your application is Under Review";
+            case "REJECTED" -> subject = "[JobHunter] Application Status Update";
+            default -> subject = "[JobHunter] Application Status Update";
         }
 
         // Build Thymeleaf context

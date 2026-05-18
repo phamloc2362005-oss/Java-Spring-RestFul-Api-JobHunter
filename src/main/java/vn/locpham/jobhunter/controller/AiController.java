@@ -156,4 +156,40 @@ public class AiController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * POST /api/v1/ai/chat
+     * Body: { "message": "...", "history": [{"role": "user", "content": "..."},
+     * ...] }
+     */
+    @PostMapping(value = "/chat", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<RestResponse<Object>> chatWithAi(@RequestBody Map<String, Object> body) {
+        String message = (String) body.getOrDefault("message", "");
+        java.util.List<java.util.Map<String, String>> history = (java.util.List<java.util.Map<String, String>>) body
+                .get("history");
+
+        if (message.trim().isEmpty()) {
+            RestResponse<Object> error = new RestResponse<>();
+            error.setStatusCode(400);
+            error.setError("Tin nhắn không được để trống.");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        java.util.Map<String, Object> aiResult = this.aiService.chatWithAi(message, history);
+
+        RestResponse<Object> response = new RestResponse<>();
+        response.setStatusCode(200);
+
+        boolean success = Boolean.TRUE.equals(aiResult.get("success"));
+        if (success) {
+            response.setData(aiResult.get("response"));
+            response.setMessage("Nhận phản hồi từ AI thành công!");
+        } else {
+            response.setStatusCode(503);
+            response.setError((String) aiResult.get("response"));
+            return ResponseEntity.status(503).body(response);
+        }
+
+        return ResponseEntity.ok(response);
+    }
 }

@@ -50,6 +50,12 @@ public class AiService {
     @Autowired
     private ResumeRepository resumeRepository;
 
+    @Autowired
+    private vn.locpham.jobhunter.repository.JobRepository jobRepository;
+
+    @Autowired
+    private vn.locpham.jobhunter.repository.CompanyRepository companyRepository;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -937,5 +943,160 @@ public class AiService {
             }
         }
         return null;
+    }
+
+    /**
+     * AI Chatbot: Chat with users using real database context (Jobs & Companies).
+     */
+    public Map<String, Object> chatWithAi(String userMessage, List<Map<String, String>> history) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            result.put("response", "Hệ thống AI chưa được cấu hình API Key. Vui lòng liên hệ quản trị viên.");
+            return result;
+        }
+
+        // 1. Fetch system context (Active Jobs & Companies)
+        StringBuilder context = new StringBuilder();
+        context.append("BẠN LÀ TRỢ LÝ HỖ TRỢ TUYỂN DỤNG CỦA CỔNG THÔNG TIN VIỆC LÀM JOBHUNTER.\n");
+        context.append(
+                "Nhiệm vụ của bạn là tư vấn nghề nghiệp, trả lời câu hỏi và gợi ý công việc dựa TRÊN DỮ LIỆU THỰC TẾ dưới đây:\n\n");
+
+        context.append("=== DANH SÁCH VIỆC LÀM ĐANG TUYỂN (ACTIVE) ===\n");
+        try {
+            List<Job> activeJobs = jobRepository.countByActiveTrue() > 0
+                    ? jobRepository.findTop5ByOrderByCreatedAtDesc() // Get recent active jobs to keep context clean &
+                                                                     // small
+                    : List.of();
+            if (activeJobs.isEmpty()) {
+                context.append("- Hiện tại chưa có việc làm nào đăng tuyển.\n");
+            } else {
+                for (Job job : activeJobs) {
+                    context.append("- Job ID: ").append(job.getId())
+                            .append(", Vị trí: ").append(job.getName())
+                            .append(", Công ty: ").append(job.getCompany() != null ? job.getCompany().getName() : "N/A")
+                            .append(", Địa điểm: ").append(job.getLocation())
+                            .append(", Mức lương: ")
+                            .append(job.getSalary() > 0 ? (job.getSalary() / 1_000_000) + " triệu VNĐ" : "Thỏa thuận")
+                            .append(", Cấp bậc: ").append(job.getLevel() != null ? job.getLevel().name() : "N/A")
+                            .append(", Kỹ năng yêu cầu: ")
+                            .append(job.getSkills().stream().map(Skill::getName).collect(Collectors.joining(", ")))
+                            .append("\n");
+                }
+            }
+        } catch (Exception e) {
+            context.append("- Lỗi tải danh sách việc làm.\n");
+        }
+
+        context.append("\n=== DANH SÁCH CÔNG TY NỔI BẬT ===\n");
+        try {
+            var companies = companyRepository.findAll();
+            if (companies.isEmpty()) {
+                context.append("- Chưa có công ty nào đăng ký.\n");
+            } else {
+                int limit = Math.min(companies.size(), 5);
+                for (int i = 0; i < limit; i++) {
+                    var c = companies.get(i);
+                    context.append("- ").append(c.getName()).append(" (Địa chỉ: ").append(c.getAddress()).append(")\n");
+                }
+            }
+        } catch (Exception e) {
+            context.append("- Lỗi tải danh sách công ty.\n");
+        }
+
+        context.append("\n=== QUY TẮC TRẢ LỜI ===\n");
+        context.append("1. Trả lời thân thiện, ngắn gọn, lịch sự bằng tiếng Việt.\n");
+        context.append(
+                "2. Nếu người dùng hỏi về công việc, hãy giới thiệu các công việc tương đồng từ 'DANH SÁCH VIỆC LÀM ĐANG TUYỂN' ở trên. Ghi rõ tên công ty, mức lương và khuyên ứng viên ứng tuyển.\n");
+        context.append("3. Không tự chế (hallucinate) tên công ty hoặc vị trí không có trong danh sách trên.\n");
+        context.append(
+                "4. Nếu người dùng hỏi những câu hỏi ngoài lề (như nấu ăn, thời tiết), hãy khéo léo từ chối và hướng họ quay lại chủ đề tuyển dụng/career advisor của JobHunter.\n\n");
+
+        // 2. Build Chat prompt with history
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append(context.toString());
+        promptBuilder.append("=== LỊCH SỬ TRÒ CHUYỆN ===\n");
+        if (history != null) {
+            for (Map<String, String> msg : history) {
+                String role = "user".equalsIgnoreCase(msg.get("role")) ? "Người dùng" : "Trợ lý AI";
+                promptBuilder.append(role).append(": ").append(msg.get("content")).append("\n");
+            }
+        }
+        promptBuilder.append("Người dùng: ").append(userMessage).append("\n");
+        promptBuilder.append("Trợ lý AI: ");
+
+        String prompt = promptBuilder.toString();
+        String[] models = { "gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest" };
+
+        for (String model : models) {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/"
+                    + model + ":generateContent?key=" + apiKey;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                Map<String, Object> textPart = new HashMap<>();
+                textPart.put("text", prompt);
+                Map<String, Object> partObj = new HashMap<>();
+                partObj.put("parts", List.of(textPart));
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("contents", List.of(partObj));
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                ResponseEntity<String> response = restTemplate.postForEntity(URI.create(url), entity, String.class);
+
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    JsonNode root = objectMapper.readTree(response.getBody());
+                    String textResponse = root.path("candidates").get(0).path("content").path("parts").get(0)
+                            .path("text").asText();
+
+                    result.put("success", true);
+                    result.put("response", textResponse.trim());
+                    System.out.println("DEBUG AI Chat: ✅ Thành công với model " + model);
+                    return result;
+                }
+            } catch (Exception e) {
+                System.err.println("DEBUG AI Chat: ❌ Model " + model + " lỗi: " + e.getMessage());
+            }
+        }
+
+        // ===== FALLBACK: GROQ =====
+        try {
+            String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
+            HttpHeaders groqHeaders = new HttpHeaders();
+            groqHeaders.setContentType(MediaType.APPLICATION_JSON);
+            groqHeaders.set("Authorization", "Bearer " + groqApiKey);
+
+            Map<String, Object> groqMessage = new HashMap<>();
+            groqMessage.put("role", "user");
+            groqMessage.put("content", prompt);
+
+            Map<String, Object> groqBody = new HashMap<>();
+            groqBody.put("model", "llama-3.3-70b-versatile");
+            groqBody.put("messages", List.of(groqMessage));
+            groqBody.put("temperature", 0.7);
+            groqBody.put("max_tokens", 1024);
+
+            HttpEntity<Map<String, Object>> groqEntity = new HttpEntity<>(groqBody, groqHeaders);
+            ResponseEntity<String> groqResponse = restTemplate.postForEntity(groqUrl, groqEntity, String.class);
+
+            if (groqResponse.getStatusCode().is2xxSuccessful() && groqResponse.getBody() != null) {
+                JsonNode groqRoot = objectMapper.readTree(groqResponse.getBody());
+                JsonNode choices = groqRoot.path("choices");
+                if (choices.isArray() && choices.size() > 0) {
+                    String textResponse = choices.get(0).path("message").path("content").asText();
+                    result.put("success", true);
+                    result.put("response", textResponse.trim());
+                    System.out.println("DEBUG AI Chat: ✅ Thành công với Groq fallback!");
+                    return result;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("DEBUG AI Chat: ❌ Groq fallback lỗi: " + e.getMessage());
+        }
+
+        result.put("response",
+                "Xin lỗi bạn, chatbot hiện tại đang quá tải hoặc gặp sự cố kết nối AI. Vui lòng thử lại sau.");
+        return result;
     }
 }

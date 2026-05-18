@@ -17,4 +17,8 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
     Page<Job> findAll(Specification<Job> spec, Pageable pageable);
 
     List<Job> findBySkillsIn(List<Skill> skills);
+
+    long countByActiveTrue();
+
+    List<Job> findTop5ByOrderByCreatedAtDesc();
 }

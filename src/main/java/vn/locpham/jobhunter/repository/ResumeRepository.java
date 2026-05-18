@@ -7,7 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import vn.locpham.jobhunter.domain.Resume;
+import vn.locpham.jobhunter.util.constant.StatusEnum;
 
 public interface ResumeRepository extends JpaRepository<Resume, Long>, JpaSpecificationExecutor<Resume> {
     Page<Resume> findAll(Specification<Resume> spec, Pageable pageable);
+
+    long countByStatus(StatusEnum status);
 }

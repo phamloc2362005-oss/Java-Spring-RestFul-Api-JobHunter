@@ -32,6 +32,7 @@ public class PermissionInterceptorConfiguration implements WebMvcConfigurer {
                 "/api/v1/expertise/**",
                 "/api/v1/expertise-category/**",
                 "/api/v1/ai/**",
+                "/api/v1/articles/**",
                 "/api/v1/reviews/**",
                 "/error"
         };

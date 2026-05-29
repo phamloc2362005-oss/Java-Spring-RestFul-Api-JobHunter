@@ -1,7 +1,11 @@
 package vn.locpham.jobhunter.domain.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ReqCreateReviewDTO {
     private int rating;
+
+    @JsonProperty("isRecommend")
     private boolean isRecommend;
     private String content;
     private String title;

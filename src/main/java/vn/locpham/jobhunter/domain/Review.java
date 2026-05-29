@@ -24,6 +24,8 @@ public class Review {
 
     private int rating; // 1 to 5
     private boolean isRecommend;
+    private int likeCount = 0;
+    private int dislikeCount = 0;
 
     @Column(columnDefinition = "MEDIUMTEXT")
     private String content;
@@ -73,6 +75,22 @@ public class Review {
 
     public void setRecommend(boolean isRecommend) {
         this.isRecommend = isRecommend;
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    public int getDislikeCount() {
+        return dislikeCount;
+    }
+
+    public void setDislikeCount(int dislikeCount) {
+        this.dislikeCount = dislikeCount;
     }
 
     public String getContent() {

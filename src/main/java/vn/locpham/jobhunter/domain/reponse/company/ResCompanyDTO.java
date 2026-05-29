@@ -18,6 +18,9 @@ public class ResCompanyDTO {
     private Long totalReviews;
     private ResReviewDTO latestReview;
 
+    // Composite ranking score (0–100)
+    private Double rankScore;
+
     public long getId() {
         return id;
     }
@@ -104,5 +107,13 @@ public class ResCompanyDTO {
 
     public void setLatestReview(ResReviewDTO latestReview) {
         this.latestReview = latestReview;
+    }
+
+    public Double getRankScore() {
+        return rankScore;
+    }
+
+    public void setRankScore(Double rankScore) {
+        this.rankScore = rankScore;
     }
 }

@@ -19,6 +19,8 @@ import vn.locpham.jobhunter.repository.ReviewRepository;
 import vn.locpham.jobhunter.repository.UserRepository;
 import vn.locpham.jobhunter.util.SecurityUtils;
 
+import java.util.Optional;
+
 @Service
 public class ReviewService {
 
@@ -98,6 +100,8 @@ public class ReviewService {
         res.setPros(review.getPros());
         res.setCons(review.getCons());
         res.setRecommend(review.isRecommend());
+        res.setLikeCount(review.getLikeCount());
+        res.setDislikeCount(review.getDislikeCount());
         res.setCreatedAt(review.getCreatedAt());
 
         if (review.getUser() != null) {
@@ -108,5 +112,22 @@ public class ReviewService {
         }
 
         return res;
+    }
+
+    // ── Like / Dislike ──────────────────────────────────
+    public ResReviewDTO likeReview(long reviewId) throws Exception {
+        Optional<Review> opt = this.reviewRepository.findById(reviewId);
+        if (opt.isEmpty()) throw new Exception("Review not found");
+        Review review = opt.get();
+        review.setLikeCount(review.getLikeCount() + 1);
+        return convertToResReviewDTO(this.reviewRepository.save(review));
+    }
+
+    public ResReviewDTO dislikeReview(long reviewId) throws Exception {
+        Optional<Review> opt = this.reviewRepository.findById(reviewId);
+        if (opt.isEmpty()) throw new Exception("Review not found");
+        Review review = opt.get();
+        review.setDislikeCount(review.getDislikeCount() + 1);
+        return convertToResReviewDTO(this.reviewRepository.save(review));
     }
 }

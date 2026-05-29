@@ -10,6 +10,8 @@ public class ResReviewDTO {
     private String title;
     private String pros;
     private String cons;
+    private int likeCount;
+    private int dislikeCount;
     private Instant createdAt;
     
     private UserReview user;
@@ -68,6 +70,22 @@ public class ResReviewDTO {
 
     public void setCons(String cons) {
         this.cons = cons;
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    public int getDislikeCount() {
+        return dislikeCount;
+    }
+
+    public void setDislikeCount(int dislikeCount) {
+        this.dislikeCount = dislikeCount;
     }
 
     public Instant getCreatedAt() {

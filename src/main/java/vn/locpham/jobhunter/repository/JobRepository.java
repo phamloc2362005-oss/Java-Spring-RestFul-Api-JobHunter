@@ -21,4 +21,6 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
     long countByActiveTrue();
 
     List<Job> findTop5ByOrderByCreatedAtDesc();
+
+    long countByCompanyIdAndActiveTrue(long companyId);
 }

@@ -40,6 +40,12 @@ public class PermissionInterceptor implements HandlerInterceptor {
         System.out.println(">>> path= " + path);
         System.out.println(">>> httpMethod= " + httpMethod);
         System.out.println(">>> requestURI= " + requestURI);
+
+        // Bỏ qua check permission cho các AI endpoint (đã public trong whitelist Security)
+        if (path != null && path.startsWith("/api/v1/ai")) {
+            return true;
+        }
+
         // B2: lấy email của user đang đăng nhập
         // email này được lấy từ SecurityContext (token đã decode trước đó)
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.locpham.jobhunter.domain.reponse.RestResponse;
 import vn.locpham.jobhunter.service.AiService;
 
@@ -47,8 +49,8 @@ public class AiController {
         if (success) {
             // Parse JSON string thành Object để trả về đúng cấu trúc
             try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                Object parsed = mapper.readValue((String) aiResult.get("content"), Object.class);
+                // Dùng readTree (JsonNode) để giữ nguyên Unicode tiếng Việt
+                JsonNode parsed = new ObjectMapper().readTree((String) aiResult.get("content"));
                 response.setData(parsed);
                 response.setMessage("Tạo nội dung CV thành công!");
             } catch (Exception e) {
@@ -95,13 +97,15 @@ public class AiController {
         boolean success = Boolean.TRUE.equals(aiResult.get("success"));
         if (success) {
             try {
-                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                Object parsed = mapper.readValue((String) aiResult.get("questions"), Object.class);
+                // Dùng readTree (JsonNode) thay vì readValue(Object.class) để
+                // giữ nguyên Unicode tiếng Việt, tránh bị mất dấu khi re-serialize
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode parsed = mapper.readTree((String) aiResult.get("questions"));
                 response.setData(parsed);
                 response.setMessage("Tạo câu hỏi phỏng vấn thành công!");
             } catch (Exception e) {
                 System.err.println("DEBUG ERROR PARSING QUESTIONS: " + e.getMessage());
-                // Trả về raw string để FE tự parse
+                // Fallback: trả về raw string để FE tự parse
                 response.setData(aiResult.get("questions"));
                 response.setMessage("Tạo câu hỏi phỏng vấn thành công (raw)!");
             }

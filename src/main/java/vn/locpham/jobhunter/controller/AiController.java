@@ -1,8 +1,12 @@
 package vn.locpham.jobhunter.controller;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,17 +14,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import vn.locpham.jobhunter.domain.ChatMessage;
 import vn.locpham.jobhunter.domain.reponse.RestResponse;
 import vn.locpham.jobhunter.service.AiService;
+import vn.locpham.jobhunter.service.ChatMessageService;
+import vn.locpham.jobhunter.util.SecurityUtils;
 
 @RestController
 @RequestMapping("/api/v1/ai")
 public class AiController {
 
     private final AiService aiService;
+    private final ChatMessageService chatMessageService;
 
-    public AiController(AiService aiService) {
+    public AiController(AiService aiService, ChatMessageService chatMessageService) {
         this.aiService = aiService;
+        this.chatMessageService = chatMessageService;
     }
 
     /**
@@ -165,12 +174,14 @@ public class AiController {
      * POST /api/v1/ai/chat
      * Body: { "message": "...", "history": [{"role": "user", "content": "..."},
      * ...] }
+     * Tự động lưu user message và AI response vào DB (nếu user đã đăng nhập).
      */
     @PostMapping(value = "/chat", produces = "application/json;charset=UTF-8")
     public ResponseEntity<RestResponse<Object>> chatWithAi(@RequestBody Map<String, Object> body) {
         String message = (String) body.getOrDefault("message", "");
         java.util.List<java.util.Map<String, String>> history = (java.util.List<java.util.Map<String, String>>) body
                 .get("history");
+        String displayTime = (String) body.getOrDefault("time", "");
 
         if (message.trim().isEmpty()) {
             RestResponse<Object> error = new RestResponse<>();
@@ -186,14 +197,78 @@ public class AiController {
 
         boolean success = Boolean.TRUE.equals(aiResult.get("success"));
         if (success) {
-            response.setData(aiResult.get("response"));
+            String aiText = (String) aiResult.get("response");
+            response.setData(aiText);
             response.setMessage("Nhận phản hồi từ AI thành công!");
+
+            // Lưu cả 2 tin nhắn vào DB nếu user đã đăng nhập
+            SecurityUtils.getCurrentUserLogin().ifPresent(email -> {
+                String now = java.time.LocalTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                String timeToUse = (displayTime != null && !displayTime.isEmpty()) ? displayTime : now;
+                chatMessageService.saveMessage(email, "user", message, timeToUse);
+                chatMessageService.saveMessage(email, "model", aiText, now);
+            });
         } else {
             response.setStatusCode(503);
             response.setError((String) aiResult.get("response"));
             return ResponseEntity.status(503).body(response);
         }
 
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/v1/ai/chat/history
+     * Lấy toàn bộ lịch sử chat của user đang đăng nhập.
+     */
+    @GetMapping(value = "/chat/history", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<RestResponse<Object>> getChatHistory() {
+        String email = SecurityUtils.getCurrentUserLogin().orElse(null);
+        if (email == null) {
+            RestResponse<Object> error = new RestResponse<>();
+            error.setStatusCode(401);
+            error.setError("Bạn cần đăng nhập để xem lịch sử chat.");
+            return ResponseEntity.status(401).body(error);
+        }
+
+        List<ChatMessage> messages = chatMessageService.getHistory(email);
+
+        // Map sang DTO gọn để trả về FE
+        List<Map<String, String>> result = messages.stream().map(m -> {
+            Map<String, String> dto = new java.util.LinkedHashMap<>();
+            dto.put("role", m.getRole());
+            dto.put("content", m.getContent());
+            dto.put("time", m.getTime() != null ? m.getTime() : "");
+            return dto;
+        }).collect(Collectors.toList());
+
+        RestResponse<Object> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setData(result);
+        response.setMessage("Lấy lịch sử chat thành công!");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * DELETE /api/v1/ai/chat/history
+     * Xóa toàn bộ lịch sử chat của user đang đăng nhập.
+     */
+    @DeleteMapping(value = "/chat/history", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<RestResponse<Object>> clearChatHistory() {
+        String email = SecurityUtils.getCurrentUserLogin().orElse(null);
+        if (email == null) {
+            RestResponse<Object> error = new RestResponse<>();
+            error.setStatusCode(401);
+            error.setError("Bạn cần đăng nhập để xóa lịch sử chat.");
+            return ResponseEntity.status(401).body(error);
+        }
+
+        chatMessageService.clearHistory(email);
+
+        RestResponse<Object> response = new RestResponse<>();
+        response.setStatusCode(200);
+        response.setMessage("Đã xóa toàn bộ lịch sử chat thành công!");
         return ResponseEntity.ok(response);
     }
 }

@@ -12,6 +12,7 @@ import vn.locpham.jobhunter.domain.reponse.email.ResEmailJob;
 import vn.locpham.jobhunter.repository.JobRepository;
 import vn.locpham.jobhunter.repository.SkillRepository;
 import vn.locpham.jobhunter.repository.SubscriberRepository;
+import vn.locpham.jobhunter.util.SecurityUtils;
 
 @Service
 public class SubscriberService {
@@ -52,6 +53,22 @@ public class SubscriberService {
             subsDB.setSkills(dbSkills);
         }
         return subscriberRepository.save(subsDB);
+    }
+
+    /**
+     * Lấy subscriber của user đang đăng nhập (dựa theo email trong JWT)
+     */
+    public Subscriber getSubscriberByCurrentUser() {
+        String email = SecurityUtils.getCurrentUserLogin().orElse(null);
+        if (email == null) return null;
+        return subscriberRepository.findByEmail(email);
+    }
+
+    /**
+     * Lấy subscriber theo email (dùng khi upsert)
+     */
+    public Subscriber getSubscriberByEmail(String email) {
+        return subscriberRepository.findByEmail(email);
     }
 
     // convert Job -> DTO gửi mail

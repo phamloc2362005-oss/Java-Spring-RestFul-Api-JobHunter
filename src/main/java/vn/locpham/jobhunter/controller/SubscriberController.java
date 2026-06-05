@@ -24,14 +24,32 @@ public class SubscriberController {
         this.subscriberService = subscriberService;
     }
 
+    /**
+     * POST /api/v1/subscribers/skills
+     * Lấy thông tin subscriber (kèm skills) của user đang đăng nhập.
+     * FE dùng để kiểm tra xem user đã subscribe chưa khi mở tab Job Alerts.
+     */
+    @PostMapping("/subscribers/skills")
+    @ApiMessage("Get subscriber skills by current user")
+    public ResponseEntity<Subscriber> getSubscriberSkills() {
+        Subscriber subscriber = this.subscriberService.getSubscriberByCurrentUser();
+        return ResponseEntity.ok(subscriber);
+    }
+
+    /**
+     * POST /api/v1/subscribers
+     * Tạo subscriber mới. Nếu email đã tồn tại thì UPDATE skills thay vì báo lỗi (upsert).
+     */
     @PostMapping("/subscribers")
     @ApiMessage("Create a new subscriber")
     public ResponseEntity<Subscriber> createNewSubscriber(@Valid @RequestBody Subscriber postmanSubscriber)
             throws IdInvalidException {
         boolean isEmailExist = this.subscriberService.existsByEmail(postmanSubscriber.getEmail());
         if (isEmailExist) {
-            throw new IdInvalidException(
-                    "Email " + postmanSubscriber.getEmail() + " đã tồn tại, vui lòng sử dụng email khác");
+            // Upsert: email đã tồn tại → update skills thay vì báo lỗi
+            Subscriber existingSubs = this.subscriberService.getSubscriberByEmail(postmanSubscriber.getEmail());
+            Subscriber updated = this.subscriberService.updateSubscriber(existingSubs, postmanSubscriber);
+            return ResponseEntity.status(HttpStatus.OK).body(updated);
         }
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(this.subscriberService.createSubscriber(postmanSubscriber));

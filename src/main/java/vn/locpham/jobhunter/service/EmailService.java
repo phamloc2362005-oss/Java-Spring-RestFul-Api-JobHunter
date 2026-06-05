@@ -19,6 +19,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import vn.locpham.jobhunter.domain.Job;
 import vn.locpham.jobhunter.domain.Resume;
+import vn.locpham.jobhunter.domain.Subscriber;
 import vn.locpham.jobhunter.repository.JobRepository;
 
 @Service
@@ -129,6 +130,34 @@ public class EmailService {
 
         String content = this.templateEngine.process("resume-status", ctx);
         this.sendEmailSync(resume.getEmail(), subject, content, false, true);
+    }
+
+    // ================================================================
+    // mail thông báo job mới cho subscriber có skill trùng
+    // ================================================================
+    @Async
+    public void sendNewJobNotification(Subscriber subscriber, Job job) {
+        if (subscriber == null || subscriber.getEmail() == null || job == null) return;
+
+        Context ctx = new Context();
+        ctx.setVariable("name", subscriber.getName() != null ? subscriber.getName() : "bạn");
+        ctx.setVariable("job", job);
+
+        if (job.getSalary() > 0) {
+            NumberFormat fmt = NumberFormat.getNumberInstance(Locale.US);
+            ctx.setVariable("salary", fmt.format(job.getSalary()) + " VND");
+        } else {
+            ctx.setVariable("salary", "Thỏa thuận");
+        }
+
+        ctx.setVariable("appUrl", "http://localhost:5173/job");
+
+        String content = this.templateEngine.process("new-job-notification", ctx);
+        this.sendEmailSync(
+            subscriber.getEmail(),
+            "[JobHunter] Việc làm mới phù hợp với bạn: " + job.getName(),
+            content, false, true
+        );
     }
 
 }

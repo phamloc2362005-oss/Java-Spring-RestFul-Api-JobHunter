@@ -70,7 +70,7 @@ public class RecommendationService {
         // 0. Check Cache
         CachedRecommendation cached = recommendationCache.get(userId);
         if (cached != null && !cached.isExpired(CACHE_DURATION)) {
-            System.out.println("DEBUG AI: 🚀 Trả về kết quả từ Cache cho User ID: " + userId);
+            System.out.println("DEBUG AI:  Trả về kết quả từ Cache cho User ID: " + userId);
             response.setStatusCode(200);
             response.setData(cached.data);
             return response;
@@ -128,7 +128,8 @@ public class RecommendationService {
                     .limit(limit)
                     .collect(Collectors.toList());
         } else {
-            // Fallback nếu AI lỗi: Lấy hết 20 candidates ban đầu để người dùng không bị trống màn hình
+            // Fallback nếu AI lỗi: Lấy hết 20 candidates ban đầu để người dùng không bị
+            // trống màn hình
             finalJobs = candidates.stream()
                     .limit(limit)
                     .collect(Collectors.toList());
@@ -149,7 +150,7 @@ public class RecommendationService {
      */
     public void clearCache(Long userId) {
         recommendationCache.remove(userId);
-        System.out.println("DEBUG AI: 🧹 Đã xóa cache gợi ý cho User ID: " + userId);
+        System.out.println("DEBUG AI:  Đã xóa cache gợi ý cho User ID: " + userId);
     }
 
     /**

@@ -13,6 +13,7 @@ import vn.locpham.jobhunter.domain.Company;
 import vn.locpham.jobhunter.domain.Expertise;
 import vn.locpham.jobhunter.domain.Job;
 import vn.locpham.jobhunter.domain.Skill;
+import vn.locpham.jobhunter.domain.Subscriber;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.reponse.job.ResCreateJobDTO;
 import vn.locpham.jobhunter.domain.reponse.job.ResUpdateJobDTO;
@@ -20,6 +21,7 @@ import vn.locpham.jobhunter.repository.CompanyRepository;
 import vn.locpham.jobhunter.repository.ExpertiseRepository;
 import vn.locpham.jobhunter.repository.JobRepository;
 import vn.locpham.jobhunter.repository.SkillRepository;
+import vn.locpham.jobhunter.repository.SubscriberRepository;
 
 @Service
 public class JobService {
@@ -28,15 +30,20 @@ public class JobService {
     private final CompanyRepository companyRepository;
     private final ExpertiseRepository expertiseRepository;
     private final ExpertiseService expertiseService;
+    private final SubscriberRepository subscriberRepository;
+    private final EmailService emailService;
 
     public JobService(JobRepository jobRepository, SkillRepository skillRepository,
             CompanyRepository companyRepository, ExpertiseRepository expertiseRepository,
-            ExpertiseService expertiseService) {
+            ExpertiseService expertiseService, SubscriberRepository subscriberRepository,
+            EmailService emailService) {
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
         this.companyRepository = companyRepository;
         this.expertiseRepository = expertiseRepository;
         this.expertiseService = expertiseService;
+        this.subscriberRepository = subscriberRepository;
+        this.emailService = emailService;
     }
 
     public Job fetchJobById(long id) {
@@ -65,6 +72,18 @@ public class JobService {
             }
         }
         Job currentJob = this.jobRepository.save(job);
+
+        // Gửi email thông báo job mới cho subscribers có skill trùng (Async)
+        if (currentJob.getSkills() != null && !currentJob.getSkills().isEmpty()) {
+            List<Long> skillIds = currentJob.getSkills().stream()
+                    .map(Skill::getId)
+                    .collect(Collectors.toList());
+            List<Subscriber> matchedSubscribers = this.subscriberRepository.findBySkillsIdIn(skillIds);
+            for (Subscriber subscriber : matchedSubscribers) {
+                this.emailService.sendNewJobNotification(subscriber, currentJob);
+            }
+        }
+
         ResCreateJobDTO res = new ResCreateJobDTO();
 
         if (currentJob.getName() != null) {

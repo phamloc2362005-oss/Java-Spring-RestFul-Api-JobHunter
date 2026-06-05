@@ -124,6 +124,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/*/like").permitAll()
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/*/dislike").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
+                                .requestMatchers(HttpMethod.PUT, "/api/v1/users/profile/recommendation").permitAll()
                                 .anyRequest().authenticated())
                 // cấu hình login bằng Google OAuth2
                 .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2LoginSuccessHandler))

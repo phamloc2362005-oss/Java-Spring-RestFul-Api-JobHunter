@@ -102,6 +102,28 @@ public class UserController {
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(currentUser));
     }
 
+    @PutMapping("/users/profile")
+    @ApiMessage("Update user profile")
+    public ResponseEntity<ResUpdateUserDTO> updateUserProfile(@RequestBody User user) throws IdInvalidException {
+        String email = SecurityUtils.getCurrentUserLogin().orElse("");
+        if (email.isEmpty()) {
+            throw new IdInvalidException("Unauthorized - Please login");
+        }
+        User currentUser = this.userService.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            throw new IdInvalidException("Unauthorized - Please login");
+        }
+        
+        // Cập nhật thông tin profile của user
+        currentUser.setName(user.getName());
+        currentUser.setAge(user.getAge());
+        currentUser.setGender(user.getGender());
+        currentUser.setAddress(user.getAddress());
+
+        User updatedUser = this.userService.handleUpdateUser(currentUser);
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updatedUser));
+    }
+
     /**
      * API lấy user profile hiện tại cho AI recommendation
      * GET /api/v1/users/profile/recommendation

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Việc làm mới phù hợp với bạn</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f4fb;font-family:'Segoe UI',Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+                <!-- ===== HEADER ===== -->
+                <tr>
+                    <td style="background:linear-gradient(135deg,#1677ff 0%,#0050b3 100%);padding:32px 40px;text-align:center;">
+                        <div style="font-size:32px;margin-bottom:8px;">🚀</div>
+                        <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">
+                            Cơ hội việc làm mới dành cho bạn!
+                        </h1>
+                        <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                            JobHunter AI đã tìm thấy vị trí phù hợp với kỹ năng của bạn
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- ===== GREETING ===== -->
+                <tr>
+                    <td style="padding:28px 40px 0;">
+                        <p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">
+                            Xin chào <strong th:text="${name}">bạn</strong>,
+                        </p>
+                        <p style="margin:10px 0 0;font-size:15px;color:#374151;line-height:1.6;">
+                            Chúng tôi vừa tìm thấy một vị trí mới <strong>khớp với kỹ năng của bạn</strong>.
+                            Đừng bỏ lỡ cơ hội này!
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- ===== JOB CARD ===== -->
+                <tr>
+                    <td style="padding:24px 40px;">
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               style="background:#f8faff;border:1px solid #dbeafe;border-radius:12px;overflow:hidden;">
+
+                            <!-- Job title bar -->
+                            <tr>
+                                <td style="background:#eff6ff;padding:16px 20px;border-bottom:1px solid #dbeafe;">
+                                    <h2 style="margin:0;font-size:18px;color:#1d4ed8;font-weight:700;"
+                                        th:text="${job.name}">Tên công việc</h2>
+                                    <p style="margin:4px 0 0;font-size:13px;color:#6b7280;"
+                                       th:text="${job.company != null ? job.company.name : 'Công ty'}">Tên công ty</p>
+                                </td>
+                            </tr>
+
+                            <!-- Job details -->
+                            <tr>
+                                <td style="padding:20px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td width="50%" style="padding-bottom:12px;">
+                                                <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">
+                                                    💰 Mức lương
+                                                </span><br/>
+                                                <span style="font-size:15px;color:#059669;font-weight:700;margin-top:4px;display:block;"
+                                                      th:text="${salary}">Thỏa thuận</span>
+                                            </td>
+                                            <td width="50%" style="padding-bottom:12px;">
+                                                <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">
+                                                    📍 Địa điểm
+                                                </span><br/>
+                                                <span style="font-size:15px;color:#374151;font-weight:600;margin-top:4px;display:block;"
+                                                      th:text="${job.location != null ? job.location : 'Toàn quốc'}">Hà Nội</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="50%">
+                                                <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">
+                                                    🎯 Cấp độ
+                                                </span><br/>
+                                                <span style="font-size:15px;color:#374151;font-weight:600;margin-top:4px;display:block;"
+                                                      th:text="${job.level != null ? job.level : 'Không giới hạn'}">Senior</span>
+                                            </td>
+                                            <td width="50%">
+                                                <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">
+                                                    👥 Số lượng
+                                                </span><br/>
+                                                <span style="font-size:15px;color:#374151;font-weight:600;margin-top:4px;display:block;">
+                                                    <span th:text="${job.quantity}">1</span> vị trí
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <!-- Skills -->
+                                    <div th:if="${job.skills != null and !job.skills.empty}"
+                                         style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+                                        <span style="font-size:12px;color:#9ca3af;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">
+                                            🛠️ Kỹ năng yêu cầu
+                                        </span>
+                                        <div style="margin-top:8px;">
+                                            <span th:each="skill : ${job.skills}"
+                                                  th:text="${skill.name}"
+                                                  style="display:inline-block;background:#dbeafe;color:#1d4ed8;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin:3px 4px 3px 0;">
+                                                Java
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- ===== CTA BUTTON ===== -->
+                <tr>
+                    <td style="padding:0 40px 32px;text-align:center;">
+                        <a th:href="${appUrl}"
+                           href="http://localhost:5173/job"
+                           style="display:inline-block;background:linear-gradient(135deg,#1677ff,#0050b3);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.3px;box-shadow:0 4px 16px rgba(22,119,255,0.35);">
+                            Xem chi tiết &amp; Ứng tuyển ngay →
+                        </a>
+                        <p style="margin:16px 0 0;font-size:13px;color:#9ca3af;">
+                            Nhanh tay trước khi vị trí này được lấp đầy!
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- ===== FOOTER ===== -->
+                <tr>
+                    <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
+                        <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
+                            Bạn nhận được email này vì đã đăng ký nhận thông báo việc làm từ
+                            <strong style="color:#374151;">JobHunter</strong>.<br/>
+                            © 2024 JobHunter. All rights reserved.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

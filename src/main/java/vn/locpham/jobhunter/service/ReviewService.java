@@ -10,16 +10,17 @@ import org.springframework.stereotype.Service;
 
 import vn.locpham.jobhunter.domain.Company;
 import vn.locpham.jobhunter.domain.Review;
+import vn.locpham.jobhunter.domain.ReviewVote;
+import vn.locpham.jobhunter.domain.ReviewVote.VoteType;
 import vn.locpham.jobhunter.domain.User;
 import vn.locpham.jobhunter.domain.reponse.ResReviewDTO;
 import vn.locpham.jobhunter.domain.reponse.ResultPaginationDTO;
 import vn.locpham.jobhunter.domain.request.ReqCreateReviewDTO;
 import vn.locpham.jobhunter.repository.CompanyRepository;
 import vn.locpham.jobhunter.repository.ReviewRepository;
+import vn.locpham.jobhunter.repository.ReviewVoteRepository;
 import vn.locpham.jobhunter.repository.UserRepository;
 import vn.locpham.jobhunter.util.SecurityUtils;
-
-import java.util.Optional;
 
 @Service
 public class ReviewService {
@@ -27,14 +28,17 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
+    private final ReviewVoteRepository reviewVoteRepository;
 
     public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository,
-            CompanyRepository companyRepository) {
+            CompanyRepository companyRepository, ReviewVoteRepository reviewVoteRepository) {
         this.reviewRepository = reviewRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
+        this.reviewVoteRepository = reviewVoteRepository;
     }
 
+    // ── Create Review ────────────────────────────────────────────────────────────
     public ResReviewDTO createReview(ReqCreateReviewDTO req) throws Exception {
         Optional<String> currentUserLogin = SecurityUtils.getCurrentUserLogin();
         if (!currentUserLogin.isPresent()) {
@@ -63,19 +67,30 @@ public class ReviewService {
         review.setCompany(optCompany.get());
 
         Review savedReview = this.reviewRepository.save(review);
-        return convertToResReviewDTO(savedReview);
+        return convertToResReviewDTO(savedReview, null);
     }
 
+    // ── Fetch Reviews by Company ─────────────────────────────────────────────────
     public ResultPaginationDTO fetchReviewsByCompany(long companyId, Pageable pageable) {
         Optional<Company> optCompany = this.companyRepository.findById(companyId);
         if (!optCompany.isPresent()) {
             return null;
         }
 
+        // Lấy user hiện tại nếu đã đăng nhập (để trả userVote)
+        User currentUser = getCurrentUser();
+
         Page<Review> pageReview = this.reviewRepository.findByCompany(optCompany.get(), pageable);
-        
+
         List<ResReviewDTO> listReview = pageReview.getContent()
-                .stream().map(item -> convertToResReviewDTO(item))
+                .stream().map(review -> {
+                    String userVote = null;
+                    if (currentUser != null) {
+                        Optional<ReviewVote> vote = reviewVoteRepository.findByUserAndReview(currentUser, review);
+                        userVote = vote.map(v -> v.getType().name()).orElse(null);
+                    }
+                    return convertToResReviewDTO(review, userVote);
+                })
                 .collect(Collectors.toList());
 
         ResultPaginationDTO rs = new ResultPaginationDTO();
@@ -87,11 +102,107 @@ public class ReviewService {
 
         rs.setMeta(mt);
         rs.setResult(listReview);
-        
+
         return rs;
     }
 
-    public ResReviewDTO convertToResReviewDTO(Review review) {
+    // ── Toggle Like ──────────────────────────────────────────────────────────────
+    public ResReviewDTO toggleLike(long reviewId) throws Exception {
+        User user = getAuthenticatedUser();
+        Review review = getReview(reviewId);
+
+        Optional<ReviewVote> existingVote = reviewVoteRepository.findByUserAndReview(user, review);
+
+        if (existingVote.isPresent()) {
+            ReviewVote vote = existingVote.get();
+            if (vote.getType() == VoteType.LIKE) {
+                // Đã like rồi → bỏ like (toggle off)
+                reviewVoteRepository.delete(vote);
+                review.setLikeCount(Math.max(0, review.getLikeCount() - 1));
+                reviewRepository.save(review);
+                return convertToResReviewDTO(review, null);
+            } else {
+                // Đang dislike → chuyển sang like
+                review.setDislikeCount(Math.max(0, review.getDislikeCount() - 1));
+                review.setLikeCount(review.getLikeCount() + 1);
+                vote.setType(VoteType.LIKE);
+                reviewVoteRepository.save(vote);
+                reviewRepository.save(review);
+                return convertToResReviewDTO(review, "LIKE");
+            }
+        } else {
+            // Chưa vote → thêm like mới
+            ReviewVote vote = new ReviewVote();
+            vote.setUser(user);
+            vote.setReview(review);
+            vote.setType(VoteType.LIKE);
+            reviewVoteRepository.save(vote);
+            review.setLikeCount(review.getLikeCount() + 1);
+            reviewRepository.save(review);
+            return convertToResReviewDTO(review, "LIKE");
+        }
+    }
+
+    // ── Toggle Dislike ───────────────────────────────────────────────────────────
+    public ResReviewDTO toggleDislike(long reviewId) throws Exception {
+        User user = getAuthenticatedUser();
+        Review review = getReview(reviewId);
+
+        Optional<ReviewVote> existingVote = reviewVoteRepository.findByUserAndReview(user, review);
+
+        if (existingVote.isPresent()) {
+            ReviewVote vote = existingVote.get();
+            if (vote.getType() == VoteType.DISLIKE) {
+                // Đã dislike rồi → bỏ dislike (toggle off)
+                reviewVoteRepository.delete(vote);
+                review.setDislikeCount(Math.max(0, review.getDislikeCount() - 1));
+                reviewRepository.save(review);
+                return convertToResReviewDTO(review, null);
+            } else {
+                // Đang like → chuyển sang dislike
+                review.setLikeCount(Math.max(0, review.getLikeCount() - 1));
+                review.setDislikeCount(review.getDislikeCount() + 1);
+                vote.setType(VoteType.DISLIKE);
+                reviewVoteRepository.save(vote);
+                reviewRepository.save(review);
+                return convertToResReviewDTO(review, "DISLIKE");
+            }
+        } else {
+            // Chưa vote → thêm dislike mới
+            ReviewVote vote = new ReviewVote();
+            vote.setUser(user);
+            vote.setReview(review);
+            vote.setType(VoteType.DISLIKE);
+            reviewVoteRepository.save(vote);
+            review.setDislikeCount(review.getDislikeCount() + 1);
+            reviewRepository.save(review);
+            return convertToResReviewDTO(review, "DISLIKE");
+        }
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────────
+    private Review getReview(long reviewId) throws Exception {
+        return reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new Exception("Review not found"));
+    }
+
+    /** Trả về User đang đăng nhập. Ném Exception nếu chưa login. */
+    private User getAuthenticatedUser() throws Exception {
+        String email = SecurityUtils.getCurrentUserLogin()
+                .orElseThrow(() -> new Exception("You must be logged in to vote"));
+        User user = userRepository.findByEmail(email);
+        if (user == null) throw new Exception("User not found");
+        return user;
+    }
+
+    /** Trả về User đang đăng nhập hoặc null nếu chưa login. */
+    private User getCurrentUser() {
+        return SecurityUtils.getCurrentUserLogin()
+                .map(userRepository::findByEmail)
+                .orElse(null);
+    }
+
+    public ResReviewDTO convertToResReviewDTO(Review review, String userVote) {
         ResReviewDTO res = new ResReviewDTO();
         res.setId(review.getId());
         res.setRating(review.getRating());
@@ -103,6 +214,7 @@ public class ReviewService {
         res.setLikeCount(review.getLikeCount());
         res.setDislikeCount(review.getDislikeCount());
         res.setCreatedAt(review.getCreatedAt());
+        res.setUserVote(userVote);
 
         if (review.getUser() != null) {
             ResReviewDTO.UserReview userReview = new ResReviewDTO.UserReview();
@@ -112,22 +224,5 @@ public class ReviewService {
         }
 
         return res;
-    }
-
-    // ── Like / Dislike ──────────────────────────────────
-    public ResReviewDTO likeReview(long reviewId) throws Exception {
-        Optional<Review> opt = this.reviewRepository.findById(reviewId);
-        if (opt.isEmpty()) throw new Exception("Review not found");
-        Review review = opt.get();
-        review.setLikeCount(review.getLikeCount() + 1);
-        return convertToResReviewDTO(this.reviewRepository.save(review));
-    }
-
-    public ResReviewDTO dislikeReview(long reviewId) throws Exception {
-        Optional<Review> opt = this.reviewRepository.findById(reviewId);
-        if (opt.isEmpty()) throw new Exception("Review not found");
-        Review review = opt.get();
-        review.setDislikeCount(review.getDislikeCount() + 1);
-        return convertToResReviewDTO(this.reviewRepository.save(review));
     }
 }

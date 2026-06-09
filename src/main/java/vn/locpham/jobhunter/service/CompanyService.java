@@ -99,13 +99,13 @@ public class CompanyService {
                 dto.setRecommendPercentage(recommendPercent);
                 dto.setTotalReviews((long) reviews.size());
 
-                // Most-liked review (fallback to latest if no likes yet)
+                // Like nhiều nhất → nếu bằng nhau, dislike ít nhất
                 Review featuredReview = reviews.stream()
-                        .max(Comparator.comparingInt((Review r) -> r.getLikeCount())
-                                .thenComparing(Review::getCreatedAt))
+                        .max(Comparator.comparingInt(Review::getLikeCount)
+                                .thenComparingInt(r -> -r.getDislikeCount()))
                         .orElse(null);
                 if (featuredReview != null) {
-                    dto.setLatestReview(this.reviewService.convertToResReviewDTO(featuredReview));
+                    dto.setLatestReview(this.reviewService.convertToResReviewDTO(featuredReview, null));
                 }
             } else {
                 dto.setAverageRating(0.0);

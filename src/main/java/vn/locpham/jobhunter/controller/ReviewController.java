@@ -45,19 +45,31 @@ public class ReviewController {
         return ResponseEntity.ok(rs);
     }
 
+    /**
+     * Toggle like: 
+     *   - Nếu chưa vote → thêm LIKE
+     *   - Nếu đang LIKE  → bỏ like (xóa vote)
+     *   - Nếu đang DISLIKE → chuyển sang LIKE
+     */
     @PutMapping("/reviews/{id}/like")
     public ResponseEntity<?> likeReview(@PathVariable("id") long id) {
         try {
-            return ResponseEntity.ok(this.reviewService.likeReview(id));
+            return ResponseEntity.ok(this.reviewService.toggleLike(id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
+    /**
+     * Toggle dislike:
+     *   - Nếu chưa vote   → thêm DISLIKE
+     *   - Nếu đang DISLIKE → bỏ dislike (xóa vote)
+     *   - Nếu đang LIKE   → chuyển sang DISLIKE
+     */
     @PutMapping("/reviews/{id}/dislike")
     public ResponseEntity<?> dislikeReview(@PathVariable("id") long id) {
         try {
-            return ResponseEntity.ok(this.reviewService.dislikeReview(id));
+            return ResponseEntity.ok(this.reviewService.toggleDislike(id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

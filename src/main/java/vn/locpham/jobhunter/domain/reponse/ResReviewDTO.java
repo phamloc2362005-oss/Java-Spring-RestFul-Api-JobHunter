@@ -13,7 +13,10 @@ public class ResReviewDTO {
     private int likeCount;
     private int dislikeCount;
     private Instant createdAt;
-    
+
+    // "LIKE", "DISLIKE", or null — vote of the currently logged-in user
+    private String userVote;
+
     private UserReview user;
 
     public long getId() {
@@ -94,6 +97,14 @@ public class ResReviewDTO {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getUserVote() {
+        return userVote;
+    }
+
+    public void setUserVote(String userVote) {
+        this.userVote = userVote;
     }
 
     public UserReview getUser() {

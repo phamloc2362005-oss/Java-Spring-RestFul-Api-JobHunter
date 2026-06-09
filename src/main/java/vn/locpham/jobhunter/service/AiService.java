@@ -477,7 +477,7 @@ public class AiService {
                 + "SỐ LƯỢNG CHÍNH XÁC:\n"
                 + "- careerObjective: 2-3 câu (khoảng 40-60 từ).\n"
                 + "- skills: 6-7 kỹ năng.\n"
-                + "- interests: 3 sở thích.\n"
+                + "- interests: 3 sở thích (viết cực kỳ ngắn gọn, mỗi sở thích chỉ 2-3 từ để tránh tràn khổ giấy).\n"
                 + "- education: 1 mục.\n"
                 + "- experiences: 2 công việc, mỗi công việc 3 bullet points.\n\n"
                 + "JSON SCHEMA (viết dài như ví dụ):\n"

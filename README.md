@@ -1,10 +1,10 @@
-# 🚀 JobHunter — Backend API
+# JobHunter — Backend API
 
 > RESTful API cho nền tảng tuyển dụng **JobHunter**, xây dựng bằng **Spring Boot 3** + **Java 17**.
 
 ---
 
-## 📋 Mục lục
+## Mục lục
 
 - [Giới thiệu](#giới-thiệu)
 - [Tech Stack](#tech-stack)
@@ -43,38 +43,38 @@ JobHunter Backend cung cấp toàn bộ REST API cho ứng dụng tuyển dụng
 
 ## Tính năng
 
-### 🔐 Xác thực & Phân quyền
+### Xác thực & Phân quyền
 - Đăng ký / Đăng nhập bằng email + password
 - **Google OAuth2** login
 - JWT Access Token + Refresh Token (cookie-based)
 - Phân quyền theo **Role & Permission** (RBAC)
 - Đổi mật khẩu, Quên mật khẩu (OTP qua email)
 
-### 💼 Việc làm & Công ty
+### Việc làm & Công ty
 - CRUD Jobs, Companies với tìm kiếm nâng cao (Spring Filter)
 - Lọc theo skill, địa điểm, mức lương, loại hình
 - Đánh dấu job yêu thích (Favorites)
 - Tự động gợi ý việc làm theo profile người dùng (AI Recommendation)
 
-### 📄 Ứng tuyển (Resume)
+### Ứng tuyển (Resume)
 - Nộp CV (upload file PDF)
 - Theo dõi trạng thái: PENDING → REVIEWING → APPROVED / REJECTED
 - AI chấm điểm độ phù hợp CV với JD (AI Score + Feedback)
 
-### ⭐ Review Công ty
+### Review Công ty
 - Người dùng viết review + rating cho công ty
 - Like / Dislike review (1 vote/user, toggle được, lưu DB)
 - Lấy review đại diện theo thuật toán: like nhiều nhất → dislike ít nhất
 
-### 📧 Job Alert
+### Job Alert
 - Đăng ký nhận email khi có việc làm mới phù hợp với skills
 - Tự động gửi email khi admin tạo job mới
 
-### 📰 Bài viết (Articles)
+### Bài viết (Articles)
 - CRUD Articles cho blog nghề nghiệp
 - Public read, Admin write
 
-### 🤖 AI Integration
+### AI Integration
 - AI chatbot tư vấn nghề nghiệp
 - AI gợi ý việc làm phù hợp
 - AI phân tích CV và cho feedback

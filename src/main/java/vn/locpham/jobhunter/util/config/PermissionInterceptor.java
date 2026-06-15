@@ -46,6 +46,11 @@ public class PermissionInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // Bỏ qua check permission cho cv-drafts (user tự quản lý CV của chính mình)
+        if (path != null && path.startsWith("/api/v1/cv-drafts")) {
+            return true;
+        }
+
         // B2: lấy email của user đang đăng nhập
         // email này được lấy từ SecurityContext (token đã decode trước đó)
         String email = SecurityUtils.getCurrentUserLogin().isPresent() ? SecurityUtils.getCurrentUserLogin().get() : "";
@@ -71,7 +76,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
                         throw new PermissionException("You are not allowed to access this resource");
                     }
                 } else {
-                    if (path != null && path.contains("/resumes")) {
+                    // User không có role nhưng vẫn được phép gọi một số API người dùng
+                    if (path != null && (path.contains("/resumes") || path.contains("/cv-drafts"))) {
                         return true;
                     }
                     throw new PermissionException("Role of user is invalid");

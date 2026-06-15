@@ -104,8 +104,8 @@ public class SecurityConfiguration {
                 "/api/v1/recommendations/jobs",
                 "/api/v1/expertise",
                 "/api/v1/expertise-category",
-                "/api/v1/ai/**"
-
+                "/api/v1/ai/**",
+                "/api/v1/cv-drafts/**", 
         };
         http
 
@@ -125,6 +125,11 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/*/dislike").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
                                 .requestMatchers(HttpMethod.PUT, "/api/v1/users/profile/recommendation").permitAll()
+                                // CV Drafts — yêu cầu đăng nhập, user chỉ thấy CV của chính mình
+                                .requestMatchers(HttpMethod.POST, "/api/v1/cv-drafts").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/cv-drafts").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/cv-drafts/**").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/api/v1/cv-drafts/**").authenticated()
                                 .anyRequest().authenticated())
                 // cấu hình login bằng Google OAuth2
                 .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2LoginSuccessHandler))
